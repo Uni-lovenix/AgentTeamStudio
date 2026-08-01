@@ -60,7 +60,12 @@ describe('team-generation-service', () => {
     const persistence = new PersistenceService(path.join(makeTempDir(), 'data'));
     const settings = new SettingsService(persistence, new FakeSecretStore());
     settings.save({
-      llm: { enabled: true, baseUrl: 'https://example.com/v1', model: 'test-model' },
+      llm: {
+        enabled: true,
+        baseUrl: 'https://example.com/v1',
+        model: 'test-model',
+        protocol: 'openai',
+      },
       apiKey: 'secret',
     });
     const client = new LlmClient();
@@ -81,7 +86,12 @@ describe('team-generation-service', () => {
     const persistence = new PersistenceService(path.join(makeTempDir(), 'data'));
     const settings = new SettingsService(persistence, new FakeSecretStore());
     settings.save({
-      llm: { enabled: true, baseUrl: 'https://example.com/v1', model: 'test-model' },
+      llm: {
+        enabled: true,
+        baseUrl: 'https://example.com/v1',
+        model: 'test-model',
+        protocol: 'openai',
+      },
       apiKey: 'secret',
     });
     const client = new LlmClient();

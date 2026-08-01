@@ -24,7 +24,8 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 - Generate a collaboration workflow and engineering conventions.
 
 ### Optional LLM Generation
-- OpenAI-compatible Base URL and model configuration.
+- OpenAI-compatible or Anthropic-compatible Base URL, protocol, and model configuration.
+- MiniMax Anthropic-compatible endpoints are supported with protocol set to `anthropic`.
 - API key stored locally with Electron `safeStorage`.
 - LLM output is schema-normalized before display.
 - LLM failure falls back to local generation with a visible warning.
@@ -44,6 +45,7 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 
 ### Settings and Status
 - Enable or disable LLM generation.
+- Choose OpenAI or Anthropic compatible protocol.
 - Test provider connection.
 - Status bar shows project count, LLM state, key state, and recent activity.
 

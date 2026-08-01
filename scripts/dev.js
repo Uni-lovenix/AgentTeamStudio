@@ -11,6 +11,14 @@ try {
   process.exit(1);
 }
 
+console.log('[dev] Bundling preload...');
+try {
+  execSync('npm run build:preload', { cwd: root, stdio: 'inherit' });
+} catch {
+  console.error('[dev] Preload bundling failed');
+  process.exit(1);
+}
+
 console.log('[dev] Building renderer...');
 try {
   execSync('npx vite build', { cwd: root, stdio: 'inherit' });

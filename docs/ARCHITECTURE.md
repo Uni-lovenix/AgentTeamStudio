@@ -44,6 +44,8 @@ Agent Team Studio is an Electron desktop application built with TypeScript and R
 
 ### Preload
 
+Preload is bundled into a single CommonJS file with esbuild because Electron's sandboxed preload cannot require project modules such as `../shared/types` at runtime.
+
 Exposes `window.agentTeamStudio` with these namespaces:
 
 ```typescript
@@ -80,9 +82,9 @@ React 18 application bundled by Vite:
 
 ### Optional LLM Generation
 
-1. User enables LLM and configures Base URL, model, and API key.
+1. User enables LLM and configures Base URL, model, protocol, and API key.
 2. `SettingsService` stores the API key encrypted with Electron `safeStorage`.
-3. `LlmClient` calls `/chat/completions` from the main process.
+3. `LlmClient` calls OpenAI-compatible `/chat/completions` or Anthropic-compatible `/v1/messages` from the main process.
 4. `normalizeTeamConfig` validates the returned JSON and applies fallback defaults.
 5. On failure, `TeamGenerationService` falls back to local generation and returns a warning.
 

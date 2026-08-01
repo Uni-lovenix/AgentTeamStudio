@@ -7,6 +7,8 @@ files:
   - dist/main/**/*
   - dist/preload/**/*
   - dist/renderer/**/*
+  - dist/services/**/*
+  - dist/shared/**/*
   - package.json
 mac:
   target:

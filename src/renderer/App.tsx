@@ -86,6 +86,16 @@ export function App() {
     return draft;
   }, [projectName, resetForm]);
 
+  const handleCreateProject = useCallback(async () => {
+    setError('');
+    setNotice('');
+    try {
+      await createProject();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }, [createProject]);
+
   const selectProject = useCallback(
     (id: string) => {
       setActiveId(id);
@@ -105,6 +115,19 @@ export function App() {
       if (!next[0]) resetForm();
     },
     [projects, resetForm]
+  );
+
+  const handleDeleteProject = useCallback(
+    async (id: string) => {
+      setError('');
+      setNotice('');
+      try {
+        await deleteProject(id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      }
+    },
+    [deleteProject]
   );
 
   const buildDraft = useCallback(
@@ -260,11 +283,10 @@ export function App() {
   );
 
   const handleTestConnection = useCallback(
-    async (apiKey?: string) => {
-      const llm = settings?.llm ?? { enabled: false, baseUrl: '', model: '' };
+    async (llm: SettingsSnapshot['llm'], apiKey?: string) => {
       return window.agentTeamStudio.settings.test({ llm, apiKey });
     },
-    [settings]
+    []
   );
 
   const handleReset = useCallback(async () => {
@@ -284,10 +306,10 @@ export function App() {
         activeId={activeId}
         onSelect={selectProject}
         onCreate={() => {
-          void createProject();
+          void handleCreateProject();
         }}
         onDelete={(id) => {
-          void deleteProject(id);
+          void handleDeleteProject(id);
         }}
         onOpenSettings={() => setShowSettings(true)}
       />

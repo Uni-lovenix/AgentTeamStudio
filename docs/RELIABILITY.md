@@ -30,6 +30,7 @@ Set `LOG_LEVEL=DEBUG|INFO|WARN|ERROR` to control output. Default is DEBUG.
 - Keys are encrypted with Electron `safeStorage` on supported systems.
 - Keys are never written into target project directories.
 - If encryption is unavailable, saving an API key fails with a clear error.
+- LLM connection tests return structured failure results for missing keys, HTTP errors, and network failures so the renderer can display the reason.
 
 ## Clean State Reset
 
@@ -45,6 +46,7 @@ The in-app Reset button and `app:reset` IPC:
 
 - Required harness files and docs exist.
 - No stale `.tmp` or `.bak` files in source, test, or script directories.
+- Detects an unbundled sandbox preload and missing service/shared build outputs when `dist/` exists.
 - Reports missing build or harness artifacts.
 
 ## Benchmarking
@@ -64,6 +66,7 @@ Targets:
 ## Cross-Platform Packaging
 
 `electron-builder.yml` defines macOS DMG and Windows NSIS targets.
+`dist/` is a local build-output directory and is not tracked by Git; release packages are regenerated with `npm run dist:mac` and `npm run dist:win`.
 
 - Run `npm run dist:mac` on macOS.
 - Run `npm run dist:win` on Windows or a compatible CI environment.

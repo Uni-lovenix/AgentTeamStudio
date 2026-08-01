@@ -1,4 +1,4 @@
-import { LlmSettings, SaveSettingsInput, SettingsSnapshot } from '../shared/types';
+import { LlmProtocol, LlmSettings, SaveSettingsInput, SettingsSnapshot } from '../shared/types';
 import { PersistenceService } from './persistence-service';
 import { logger } from './logger';
 
@@ -19,6 +19,7 @@ interface StoredSettings {
     enabled: boolean;
     baseUrl: string;
     model: string;
+    protocol: LlmProtocol;
     apiKeyEncrypted?: string;
   };
 }
@@ -28,8 +29,13 @@ const DEFAULT_SETTINGS: StoredSettings = {
     enabled: false,
     baseUrl: 'https://api.openai.com/v1',
     model: 'gpt-4o-mini',
+    protocol: 'openai',
   },
 };
+
+function inferProtocol(baseUrl: string): LlmProtocol {
+  return /anthropic/i.test(baseUrl) ? 'anthropic' : 'openai';
+}
 
 export class SettingsService {
   private log = logger.forService(SERVICE);
@@ -42,10 +48,14 @@ export class SettingsService {
   private read(): StoredSettings {
     const stored = this.persistence.readJson<StoredSettings>('settings.json');
     if (!stored?.llm) return { ...DEFAULT_SETTINGS };
+    const merged = {
+      ...DEFAULT_SETTINGS.llm,
+      ...stored.llm,
+    };
     return {
       llm: {
-        ...DEFAULT_SETTINGS.llm,
-        ...stored.llm,
+        ...merged,
+        protocol: stored.llm.protocol ?? inferProtocol(stored.llm.baseUrl),
       },
     };
   }
@@ -65,6 +75,7 @@ export class SettingsService {
         enabled: stored.llm.enabled,
         baseUrl: stored.llm.baseUrl,
         model: stored.llm.model,
+        protocol: stored.llm.protocol,
       },
       hasApiKey: Boolean(stored.llm.apiKeyEncrypted),
     };
@@ -76,6 +87,7 @@ export class SettingsService {
       enabled: stored.llm.enabled,
       baseUrl: stored.llm.baseUrl,
       model: stored.llm.model,
+      protocol: stored.llm.protocol,
     };
     if (stored.llm.apiKeyEncrypted) {
       try {
@@ -96,12 +108,16 @@ export class SettingsService {
     if (!input.llm.model.trim()) {
       throw new Error('模型名称不能为空');
     }
+    if (input.llm.protocol !== 'openai' && input.llm.protocol !== 'anthropic') {
+      throw new Error('LLM 协议必须是 OpenAI 兼容或 Anthropic 兼容');
+    }
     const stored = this.read();
     const next: StoredSettings = {
       llm: {
         enabled: input.llm.enabled,
         baseUrl: input.llm.baseUrl.trim(),
         model: input.llm.model.trim(),
+        protocol: input.llm.protocol,
       },
     };
     if (input.clearApiKey) {
@@ -118,6 +134,7 @@ export class SettingsService {
     this.log.info('Saved settings', {
       enabled: next.llm.enabled,
       hasApiKey: Boolean(next.llm.apiKeyEncrypted),
+      protocol: next.llm.protocol,
     });
     return this.getSnapshot();
   }

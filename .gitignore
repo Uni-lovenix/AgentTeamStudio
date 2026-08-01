@@ -1,9 +1,5 @@
 node_modules/
-dist/**
-!dist/AgentTeamStudio-*
-!dist/SHA256SUMS.txt
-# Combined Windows installer exceeds GitHub's 100 MiB file limit.
-dist/AgentTeamStudio-0.1.0-win.*
+dist/
 release/
 coverage/
 .DS_Store

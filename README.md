@@ -9,16 +9,28 @@ Agent Team Studio 是一个跨平台桌面应用，支持 Windows 和 macOS。�
 
 当前版本只负责团队配置的生成和导出，不执行多智能体工作流。
 
-## 下载与直接使用
+## 本地生成发布包
 
-以下 release 包已生成在仓库 `dist/` 目录中，可直接下载使用：
+`dist/` 是本地构建输出目录，不会上传到 Git。需要发布包时在本机生成：
 
-| 平台 | 包 | 说明 |
-| --- | --- | --- |
-| macOS Apple Silicon | [AgentTeamStudio-0.1.0-mac-arm64.zip](dist/AgentTeamStudio-0.1.0-mac-arm64.zip) | 解压后将 `Agent Team Studio.app` 拖入“应用程序” |
-| Windows x64 | [AgentTeamStudio-0.1.0-win-x64.exe](dist/AgentTeamStudio-0.1.0-win-x64.exe) | 双击运行 NSIS 安装程序 |
-| Windows ARM64 | [AgentTeamStudio-0.1.0-win-arm64.exe](dist/AgentTeamStudio-0.1.0-win-arm64.exe) | 适用于 ARM64 Windows 设备 |
-| 校验文件 | [SHA256SUMS.txt](dist/SHA256SUMS.txt) | 下载后可用 `shasum -a 256 -c SHA256SUMS.txt` 校验 |
+```bash
+npm run dist:mac
+npm run dist:win
+```
+
+生成后可在本地 `dist/` 找到：
+
+- macOS Apple Silicon：`dist/AgentTeamStudio-0.1.0-mac-arm64.zip`
+- Windows x64：`dist/AgentTeamStudio-0.1.0-win-x64.exe`
+- Windows ARM64：`dist/AgentTeamStudio-0.1.0-win-arm64.exe`
+- 校验文件：`dist/SHA256SUMS.txt`
+
+`SHA256SUMS.txt` 需要按本机最新构建产物重新生成：
+
+```bash
+cd dist
+shasum -a 256 AgentTeamStudio-0.1.0-mac-arm64.zip AgentTeamStudio-0.1.0-win-x64.exe AgentTeamStudio-0.1.0-win-arm64.exe AgentTeamStudio-0.1.0-win.exe > SHA256SUMS.txt
+```
 
 > 当前包未做 Apple 和 Microsoft 代码签名。macOS 首次打开时如被 Gatekeeper 拦截，可在 Finder 中右键应用并选择“打开”；Windows SmartScreen 提示时选择“仍要运行”。
 
@@ -26,7 +38,7 @@ Agent Team Studio 是一个跨平台桌面应用，支持 Windows 和 macOS。�
 
 - 输入项目名称、需求描述和技术栈提示。
 - 本地模板自动识别 web、backend、mobile、desktop、AI/data、CLI 等项目类型。
-- 可选 OpenAI 兼容 LLM 生成更贴合需求的团队配置。
+- 可选 OpenAI 兼容或 Anthropic/MiniMax 兼容 LLM 生成更贴合需求的团队配置。
 - 编辑角色名称、使命、职责、技能、工具、交付物、依赖和通知关系。
 - 编辑协作流程和分支、提交、PR、测试、文档约定。
 - 将配置原子写入用户选择的已有项目目录。
@@ -68,7 +80,7 @@ bash init.sh
 1. 点击“新建项目”，输入项目名称。
 2. 粘贴至少 10 个字符的需求描述，可补充技术栈提示。
 3. 点击“生成团队”，应用会先使用本地模板生成。
-4. 如需 LLM 生成，在设置中启用 LLM 并配置 Base URL、模型和 API Key。
+4. 如需 LLM 生成，在设置中启用 LLM，选择 OpenAI 兼容或 Anthropic 兼容协议，并配置 Base URL、模型和 API Key。
 5. 在团队预览中调整角色、流程和约定。
 6. 点击“选择项目目录”，指定一个已有的项目目录。
 7. 点击“写入项目目录”，应用会生成 `AGENTS.md` 和 `agents.json`。
@@ -81,8 +93,14 @@ bash init.sh
 LLM 默认关闭。设置面板支持：
 
 - `Base URL`：OpenAI 兼容接口地址，例如 `https://api.openai.com/v1`。
+- `接口协议`：可选 `OpenAI 兼容` 或 `Anthropic 兼容`。
 - `Model`：例如 `gpt-4o-mini`，可按服务商填写。
 - `API Key`：通过 Electron `safeStorage` 加密保存在本地。
+
+MiniMax 配置示例：
+
+- OpenAI 兼容：`Base URL` 填 `https://api.minimaxi.com/v1`，协议选 `OpenAI 兼容`，模型填如 `MiniMax-M2.7-highspeed`。
+- Anthropic 兼容：`Base URL` 填 `https://api.minimaxi.com/anthropic`，协议选 `Anthropic 兼容`，模型填如 `MiniMax-M2.7-highspeed`。
 
 LLM 返回结果会经过结构校验。如果请求失败、超时或返回格式无效，应用会自动回退到本地模板，并在界面中显示警告。
 
@@ -138,7 +156,7 @@ scripts/       开发、基准、清理脚本
 当前仓库已通过以下验证：
 
 - `npm run check`
-- `npm test`（16 个测试用例）
+- `npm test`（20 个测试用例）
 - `npm run build`
 - `bash init.sh`
 - `bash scripts/benchmark.sh`
@@ -146,4 +164,4 @@ scripts/       开发、基准、清理脚本
 - `npm run dist:mac` macOS ZIP 应用包构建
 - `npm run dist:win` Windows x64/ARM64 NSIS 安装包构建
 
-Windows x64/ARM64 安装包已在当前仓库的 `dist/` 目录中生成；实际 Windows 系统上的安装和冒烟测试仍建议在 Windows 或 CI 环境执行。
+Windows x64/ARM64 安装包可通过 `npm run dist:win` 在本地 `dist/` 目录生成；实际 Windows 系统上的安装和冒烟测试仍建议在 Windows 或 CI 环境执行。

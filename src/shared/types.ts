@@ -1,6 +1,7 @@
 /** Cross-boundary type definitions shared between main, preload, and renderer. */
 
 export type GenerationSource = 'local' | 'llm';
+export type LlmProtocol = 'openai' | 'anthropic';
 
 export interface WorkflowStep {
   id: string;
@@ -86,6 +87,7 @@ export interface LlmSettings {
   enabled: boolean;
   baseUrl: string;
   model: string;
+  protocol: LlmProtocol;
 }
 
 export interface SettingsSnapshot {

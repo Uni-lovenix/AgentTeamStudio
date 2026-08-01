@@ -115,12 +115,17 @@ export function registerIpcHandlers(ipcMain: IpcMain, services: ServiceRegistry)
       enabled: input.llm.enabled,
       baseUrl: input.llm.baseUrl,
       model: input.llm.model,
+      protocol: input.llm.protocol,
     });
     return settingsService.save(input);
   });
 
   ipcMain.handle(IPC_CHANNELS.TEST_LLM, async (_event, input: ConnectionTestInput) => {
-    logger.info(SERVICE, 'IPC: TEST_LLM', { baseUrl: input.llm.baseUrl, model: input.llm.model });
+    logger.info(SERVICE, 'IPC: TEST_LLM', {
+      baseUrl: input.llm.baseUrl,
+      model: input.llm.model,
+      protocol: input.llm.protocol,
+    });
     const storedApiKey = settingsService.getClientSettings().apiKey;
     return llmClient.testConnection({
       ...input.llm,

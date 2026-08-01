@@ -14,7 +14,7 @@ interface SettingsPanelProps {
     apiKey?: string;
     clearApiKey?: boolean;
   }) => Promise<void>;
-  onTest: (apiKey?: string) => Promise<ConnectionTestResult>;
+  onTest: (llm: SettingsSnapshot['llm'], apiKey?: string) => Promise<ConnectionTestResult>;
 }
 
 export function SettingsPanel({
@@ -27,9 +27,11 @@ export function SettingsPanel({
   const [enabled, setEnabled] = useState(false);
   const [baseUrl, setBaseUrl] = useState('https://api.openai.com/v1');
   const [model, setModel] = useState('gpt-4o-mini');
+  const [protocol, setProtocol] = useState<SettingsSnapshot['llm']['protocol']>('openai');
   const [apiKey, setApiKey] = useState('');
   const [clearApiKey, setClearApiKey] = useState(false);
   const [result, setResult] = useState<ConnectionTestResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -37,9 +39,11 @@ export function SettingsPanel({
       setEnabled(settings.llm.enabled);
       setBaseUrl(settings.llm.baseUrl);
       setModel(settings.llm.model);
+      setProtocol(settings.llm.protocol);
       setApiKey('');
       setClearApiKey(false);
       setResult(null);
+      setErrorMessage('');
     }
   }, [settings, open]);
 
@@ -49,10 +53,12 @@ export function SettingsPanel({
     setSaving(true);
     try {
       await onSave({
-        llm: { enabled, baseUrl, model },
+        llm: { enabled, baseUrl, model, protocol },
         apiKey: apiKey || undefined,
         clearApiKey: clearApiKey || undefined,
       });
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : String(err));
     } finally {
       setSaving(false);
     }
@@ -60,7 +66,16 @@ export function SettingsPanel({
 
   const handleTest = async (): Promise<void> => {
     setResult(null);
-    setResult(await onTest(apiKey || undefined));
+    setErrorMessage('');
+    try {
+      setResult(await onTest({ enabled, baseUrl, model, protocol }, apiKey || undefined));
+    } catch (err) {
+      setResult({
+        ok: false,
+        message: err instanceof Error ? err.message : String(err),
+        latencyMs: 0,
+      });
+    }
   };
 
   return (
@@ -93,6 +108,16 @@ export function SettingsPanel({
             <input value={model} onChange={(event) => setModel(event.target.value)} />
           </label>
           <label className="field">
+            <span>接口协议</span>
+            <select
+              value={protocol}
+              onChange={(event) => setProtocol(event.target.value as SettingsSnapshot['llm']['protocol'])}
+            >
+              <option value="openai">OpenAI 兼容</option>
+              <option value="anthropic">Anthropic 兼容</option>
+            </select>
+          </label>
+          <label className="field">
             <span>API Key</span>
             <input
               type="password"
@@ -121,6 +146,7 @@ export function SettingsPanel({
               保存设置
             </button>
           </div>
+          {errorMessage && <div className="message error">{errorMessage}</div>}
           {result && (
             <div className={`test-result ${result.ok ? 'ok' : 'error'}`}>
               {result.message}（{result.latencyMs}ms）

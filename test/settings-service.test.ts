@@ -46,12 +46,14 @@ describe('settings-service', () => {
         enabled: true,
         baseUrl: 'https://example.com/v1',
         model: 'test-model',
+        protocol: 'openai',
       },
       apiKey: 'secret-value',
     });
 
     expect(snapshot.hasApiKey).toBe(true);
     expect(snapshot.llm.enabled).toBe(true);
+    expect(snapshot.llm.protocol).toBe('openai');
     expect(service.getClientSettings().apiKey).toBe('secret-value');
     expect(JSON.stringify(persistence.readJson('settings.json'))).not.toContain('secret-value');
   });
@@ -64,6 +66,7 @@ describe('settings-service', () => {
         enabled: false,
         baseUrl: 'https://example.com/v1',
         model: 'test-model',
+        protocol: 'openai',
       },
       apiKey: 'secret-value',
     });
@@ -73,11 +76,29 @@ describe('settings-service', () => {
         enabled: false,
         baseUrl: 'https://example.com/v1',
         model: 'test-model',
+        protocol: 'openai',
       },
       clearApiKey: true,
     });
 
     expect(snapshot.hasApiKey).toBe(false);
     expect(service.getClientSettings().apiKey).toBeUndefined();
+  });
+
+  it('migrates legacy settings by inferring the protocol from the base URL', () => {
+    const persistence = new PersistenceService(path.join(makeTempDir(), 'data'));
+    persistence.writeJson('settings.json', {
+      llm: {
+        enabled: true,
+        baseUrl: 'https://api.minimaxi.com/anthropic',
+        model: 'MiniMax-M2.7-highspeed',
+      },
+    });
+    const service = new SettingsService(persistence, new FakeSecretStore());
+
+    const snapshot = service.getSnapshot();
+
+    expect(snapshot.llm.protocol).toBe('anthropic');
+    expect(service.getClientSettings().baseUrl).toBe('https://api.minimaxi.com/anthropic');
   });
 });

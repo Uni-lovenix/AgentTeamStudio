@@ -26,6 +26,24 @@ else
   echo "[OK] dist/ absent"
 fi
 
+if [ -d dist ]; then
+  if [ -f dist/preload/preload.js ] && grep -q 'require("../shared/types")' dist/preload/preload.js; then
+    echo "[STALE] dist/preload/preload.js is unbundled and will fail in Electron sandbox preload"
+    ISSUES=$((ISSUES + 1))
+  elif [ -f dist/preload/preload.js ]; then
+    echo "[OK] dist/preload/preload.js is bundled"
+  fi
+
+  for file in dist/services/persistence-service.js dist/shared/types.js; do
+    if [ -f "$file" ]; then
+      echo "[OK] $file"
+    else
+      echo "[MISSING] $file"
+      ISSUES=$((ISSUES + 1))
+    fi
+  done
+fi
+
 STALE=$(find src test scripts -name '*.tmp' -o -name '*.bak' 2>/dev/null | wc -l | tr -d ' ')
 if [ "$STALE" -eq 0 ]; then
   echo "[OK] No temporary or backup files"
