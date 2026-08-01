@@ -255,8 +255,13 @@ export function App() {
         targetDirectory: targetPath,
         overwrite: inspection.existingFiles.length > 0,
       });
+      const changedFiles = [...result.createdFiles, ...result.overwrittenFiles];
+      const pointerNotice =
+        result.appendedFiles.length > 0
+          ? `；${result.appendedFiles.join('、')} 已追加规则入口`
+          : '';
       setNotice(
-        `已写入 ${[...result.createdFiles, ...result.overwrittenFiles].join('、')} 到 ${result.targetDirectory}`
+        `已写入 ${changedFiles.join('、')} 到 ${result.targetDirectory}${pointerNotice}`
       );
       await saveCurrentDraft(team);
     } catch (err) {

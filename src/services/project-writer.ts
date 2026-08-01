@@ -5,16 +5,26 @@ import { logger } from './logger';
 
 const SERVICE = 'project-writer';
 
+export const TEAM_RULES_FILENAME = 'AGENTS.team.md';
+export const AGENTS_JSON_FILENAME = 'agents.json';
+export const CLAUDE_RULES_FILENAME = 'CLAUDE.md';
+export const CODEX_RULES_FILENAME = 'AGENTS.md';
+export const AGENT_RULES_FILENAMES = [
+  CLAUDE_RULES_FILENAME,
+  CODEX_RULES_FILENAME,
+] as const;
+
 export interface TargetInspection {
   directoryExists: boolean;
   existingFiles: string[];
+  existingRuleFiles: string[];
 }
 
 function bulletItems(items: string[]): string {
   return items.map((item) => `- ${item}`).join('\n');
 }
 
-export function renderAgentsMarkdown(team: TeamConfig): string {
+export function renderTeamMarkdown(team: TeamConfig): string {
   const roleSections = team.agents
     .map(
       (agent) => `### ${agent.name}
@@ -73,6 +83,21 @@ ${workflowSections}
 `;
 }
 
+function renderTeamPointer(): string {
+  return `使用智能体规则在 ${TEAM_RULES_FILENAME} 文件`;
+}
+
+function appendTeamPointerIfMissing(absolutePath: string): boolean {
+  if (!fs.existsSync(absolutePath)) return false;
+  const content = fs.readFileSync(absolutePath, 'utf-8');
+  if (content.includes(renderTeamPointer())) return false;
+  const nextContent = `${content.replace(/\s+$/, '')}\n\n## Agent Team Studio\n\n${renderTeamPointer()}\n`;
+  const tempPath = `${absolutePath}.tmp`;
+  fs.writeFileSync(tempPath, nextContent, 'utf-8');
+  fs.renameSync(tempPath, absolutePath);
+  return true;
+}
+
 export class ProjectWriter {
   private log = logger.forService(SERVICE);
 
@@ -80,14 +105,17 @@ export class ProjectWriter {
     const absolute = path.resolve(targetDirectory);
     const directoryExists = fs.existsSync(absolute) && fs.statSync(absolute).isDirectory();
     const existingFiles: string[] = [];
+    const existingRuleFiles = directoryExists
+      ? AGENT_RULES_FILENAMES.filter((filename) => fs.existsSync(path.join(absolute, filename)))
+      : [];
     if (directoryExists) {
-      for (const filename of ['AGENTS.md', 'agents.json']) {
+      for (const filename of [TEAM_RULES_FILENAME, AGENTS_JSON_FILENAME]) {
         if (fs.existsSync(path.join(absolute, filename))) {
           existingFiles.push(filename);
         }
       }
     }
-    return { directoryExists, existingFiles };
+    return { directoryExists, existingFiles, existingRuleFiles };
   }
 
   writeToDirectory(
@@ -105,8 +133,8 @@ export class ProjectWriter {
     }
 
     const files = [
-      { filename: 'AGENTS.md', content: renderAgentsMarkdown(team) },
-      { filename: 'agents.json', content: `${JSON.stringify(team, null, 2)}\n` },
+      { filename: TEAM_RULES_FILENAME, content: renderTeamMarkdown(team) },
+      { filename: AGENTS_JSON_FILENAME, content: `${JSON.stringify(team, null, 2)}\n` },
     ];
     const createdFiles: string[] = [];
     const overwrittenFiles: string[] = [];
@@ -121,15 +149,24 @@ export class ProjectWriter {
         createdFiles.push(file.filename);
       }
     }
+    const appendedFiles: string[] = [];
+    for (const filename of AGENT_RULES_FILENAMES) {
+      const rulePath = path.join(absolute, filename);
+      if (appendTeamPointerIfMissing(rulePath)) {
+        appendedFiles.push(filename);
+      }
+    }
     this.log.info('Wrote team config to project directory', {
       targetDirectory: absolute,
       createdFiles,
       overwrittenFiles,
+      appendedFiles,
     });
     return {
       targetDirectory: absolute,
       createdFiles,
       overwrittenFiles,
+      appendedFiles,
     };
   }
 }

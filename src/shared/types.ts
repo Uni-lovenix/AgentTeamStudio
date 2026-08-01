@@ -76,11 +76,13 @@ export interface WriteTeamResult {
   targetDirectory: string;
   createdFiles: string[];
   overwrittenFiles: string[];
+  appendedFiles: string[];
 }
 
 export interface TargetInspection {
   directoryExists: boolean;
   existingFiles: string[];
+  existingRuleFiles: string[];
 }
 
 export interface LlmSettings {
