@@ -43,6 +43,7 @@ shasum -a 256 AgentTeamStudio-0.1.0-mac-arm64.zip AgentTeamStudio-0.1.0-win-x64.
 - 可选 OpenAI 兼容或 Anthropic/MiniMax 兼容 LLM 生成更贴合需求的团队配置。
 - 编辑角色名称、使命、职责、技能、工具、交付物、依赖和通知关系。
 - 编辑协作流程和分支、提交、PR、测试、文档约定。
+- 实际生成过程日志展示“依据什么信号、生成哪个角色、得到什么结果”，而不是只罗列步骤名称。
 - 将配置原子写入用户选择的已有项目目录，团队配置使用 `AGENTS.team.md`、`agents.json` 和 `agents/` 下的独立角色文件，不覆盖 `AGENTS.md` / `CLAUDE.md`。
 - 本地保存多个项目草稿，重启后仍可继续编辑。
 - API Key 使用 Electron `safeStorage` 加密保存，不会写入目标项目。

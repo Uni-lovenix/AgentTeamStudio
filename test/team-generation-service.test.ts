@@ -54,6 +54,7 @@ describe('team-generation-service', () => {
     expect(result.team.generatedBy).toBe('local');
     expect(result.llmAttempted).toBe(false);
     expect(result.warnings).toEqual([]);
+    expect(result.team.generationLog?.some((entry) => entry.step === '需求输入')).toBe(true);
   });
 
   it('falls back to local generation when the LLM call fails', async () => {
@@ -80,6 +81,7 @@ describe('team-generation-service', () => {
     expect(result.team.generatedBy).toBe('local');
     expect(result.llmAttempted).toBe(true);
     expect(result.warnings.some((warning) => warning.includes('network down'))).toBe(true);
+    expect(result.team.generationLog?.some((entry) => entry.step === 'LLM 回退')).toBe(true);
   });
 
   it('keeps an LLM result when generation succeeds', async () => {

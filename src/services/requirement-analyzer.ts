@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   AgentRole,
   EngineeringConventions,
+  GenerationLogEntry,
   TeamConfig,
   WorkflowStep,
 } from '../shared/types';
@@ -365,11 +366,28 @@ function matchedPhrase(text: string, pattern: RegExp): string | undefined {
   return match?.[0];
 }
 
+function requirementSnippet(text: string, maxLength = 80): string {
+  const trimmed = text.trim();
+  return trimmed.length > maxLength ? `${trimmed.slice(0, maxLength)}...` : trimmed;
+}
+
 export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig {
   const requirement = context.requirement.trim();
   const projectName = context.projectName?.trim() || '未命名项目';
   const techStackHints = parseTechStackHints(context.techStackHints);
   const combinedText = `${requirement}\n${techStackHints.join('\n')}`;
+  const generationLog: GenerationLogEntry[] = [
+    {
+      step: '需求输入',
+      detail: '开始读取需求文本并识别需要完成的责任区块。',
+      evidence: requirementSnippet(requirement),
+    },
+    {
+      step: '技术栈提示',
+      detail: techStackHints.length > 0 ? '技术栈提示会参与角色技能和工具生成。' : '未提供技术栈提示，按需求文本判断。',
+      evidence: techStackHints.join('、') || '未提供',
+    },
+  ];
 
   const matchedSpecs = CONCERN_ROLES
     .map((spec) => ({ spec, position: firstMatchPosition(combinedText, spec.pattern) }))
@@ -402,6 +420,12 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
       ['交付协调负责人', '文档与交接负责人']
     )
   );
+  generationLog.push({
+    step: '基础角色',
+    detail: '每个项目都需要先明确验收标准，所以生成“需求与验收负责人”。',
+    role: '需求与验收负责人',
+    outcome: '负责需求目标、边界、优先级和验收标准',
+  });
 
   addRole(
     createRole(
@@ -419,10 +443,30 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
       ['需求与验收负责人', '文档与交接负责人']
     )
   );
+  generationLog.push({
+    step: '基础角色',
+    detail: '多角色协作前必须明确交付顺序和依赖，所以生成“交付协调负责人”。',
+    role: '交付协调负责人',
+    outcome: '负责识别责任区块、编排依赖并汇总交付',
+  });
 
   for (const spec of matchedSpecs) {
     if (roleIndex.has(spec.name)) continue;
-    const phrase = matchedPhrase(combinedText, spec.pattern);
+    const phrase = matchedPhrase(combinedText, spec.pattern) ?? spec.key;
+    generationLog.push({
+      step: '责任识别',
+      detail: `需求中出现“${phrase}”，所以匹配“${spec.name}”责任区块。`,
+      evidence: phrase,
+      role: spec.name,
+      outcome: '命中责任区块',
+    });
+    generationLog.push({
+      step: '角色生成',
+      detail: `根据“${phrase}”创建“${spec.name}”角色。`,
+      evidence: spec.mission,
+      role: spec.name,
+      outcome: `职责：${spec.responsibilities.join('；')}`,
+    });
     const responsibilities = phrase
       ? [...spec.responsibilities, `围绕需求中的“${phrase}”落实可验收交付。`]
       : spec.responsibilities;
@@ -456,6 +500,12 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
       ['需求与验收负责人']
     )
   );
+  generationLog.push({
+    step: '基础角色',
+    detail: '交付结果需要能被后续角色接手，所以生成“文档与交接负责人”。',
+    role: '文档与交接负责人',
+    outcome: '负责沉淀需求、接口、运行说明和交付清单',
+  });
 
   const finalRoles = roles.map((role) => ({
     ...role,
@@ -463,6 +513,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
     notifies: role.notifies.filter((name) => name !== role.name && roleIndex.has(name)),
   }));
   const finalRoleIndex = new Map(finalRoles.map((role) => [role.name, role]));
+  const finalRoleById = new Map(finalRoles.map((role) => [role.id, role]));
 
   const demandRole = finalRoleIndex.get('需求与验收负责人') ?? finalRoles[0];
   const deliveryRole = finalRoleIndex.get('交付协调负责人') ?? finalRoles[0];
@@ -510,6 +561,17 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
       ownerRoleId: docsRole.id,
     },
   ];
+  generationLog.push({
+    step: '协作流程',
+    detail: `根据角色负责人生成协作流程：${workflow.map((step) => step.name).join(' → ')}。`,
+    evidence: `共 ${workflow.length} 个步骤`,
+    outcome: workflow
+      .map(
+        (step) =>
+          `${step.name}：${finalRoleById.get(step.ownerRoleId)?.name ?? '待分配'}`
+      )
+      .join('；'),
+  });
 
   return {
     schemaVersion: 1,
@@ -521,6 +583,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
     workflow,
     agents: finalRoles,
     conventions: DEFAULT_CONVENTIONS,
+    generationLog,
   };
 }
 
@@ -566,6 +629,28 @@ export function normalizeTeamConfig(
     return { ...agent, id };
   });
   const rawWorkflow = Array.isArray(value.workflow) ? value.workflow : fallback.workflow;
+  const generationLog: GenerationLogEntry[] = [];
+  if (Array.isArray(value.agents) && value.agents.length > 0) {
+    generationLog.push({
+      step: 'LLM 解析',
+      detail: `LLM 返回 ${value.agents.length} 个角色，已校验并去重。`,
+      evidence: dedupedAgents.map((agent) => agent.name).join('、'),
+      outcome: `保留 ${dedupedAgents.length} 个角色`,
+    });
+  } else {
+    generationLog.push({
+      step: 'LLM 兜底',
+      detail: 'LLM 未返回有效角色数组，所以改用本地需求驱动生成。',
+      evidence: 'agents 字段缺失或为空',
+      outcome: `回退角色：${fallback.agents.map((agent) => agent.name).join('、')}`,
+    });
+  }
+  generationLog.push({
+    step: '结构校验',
+    detail: '缺失字段已补齐，协作流程和工程约定已标准化。',
+    evidence: '技能、工具、交付物、约定等字段',
+    outcome: 'TeamConfig 已标准化',
+  });
   const workflow: WorkflowStep[] = rawWorkflow
     .map((step, index) => {
       const item = (step ?? {}) as Record<string, unknown>;
@@ -591,6 +676,7 @@ export function normalizeTeamConfig(
     createdAt: new Date().toISOString(),
     workflow,
     agents: dedupedAgents,
+    generationLog,
     conventions: {
       branch:
         typeof rawConventions.branch === 'string' && rawConventions.branch

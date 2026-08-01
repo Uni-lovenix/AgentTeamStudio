@@ -39,6 +39,11 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 - Edit workflow step names, descriptions, and owners.
 - Edit branch, commit, PR, testing, and documentation conventions.
 
+### Generation Log
+- Show the concrete generation chain: which requirement signal was detected, which role was created, and what that role is responsible for.
+- Record requirement input, responsibility-area detection, role creation, LLM fallback, and workflow decisions.
+- Persist the decision log with the project draft and include it in the machine-readable team config.
+
 ### Export to Project Directory
 - Select an existing project directory with a native dialog.
 - Inspect whether `AGENTS.team.md` or `agents.json` already exist.
@@ -56,7 +61,7 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 
 ## User Interface
 
-The first screen is the working tool: left sidebar for project drafts, center area for requirement input and editable team preview, right rail for export, and a bottom status bar. The UI is in Chinese.
+The first screen is the working tool: left sidebar for project drafts, center area for requirement input, generation log and editable team preview, right rail for export, and a bottom status bar. The UI is in Chinese.
 
 ## Constraints
 

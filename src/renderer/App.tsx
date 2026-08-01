@@ -8,6 +8,7 @@ import {
 } from '../shared/types';
 import { Sidebar } from './components/Sidebar';
 import { RequirementEditor } from './components/RequirementEditor';
+import { GenerationLog } from './components/GenerationLog';
 import { TeamPreview } from './components/TeamPreview';
 import { ExportPanel } from './components/ExportPanel';
 import { SettingsPanel } from './components/SettingsPanel';
@@ -361,6 +362,7 @@ export function App() {
             void handleSaveDraft();
           }}
         />
+        <GenerationLog team={generatedTeam} busy={busy} />
         <div className="workspace-grid">
           <TeamPreview team={generatedTeam} onChange={setGeneratedTeam} />
           <ExportPanel

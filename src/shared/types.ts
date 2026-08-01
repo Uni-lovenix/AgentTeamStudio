@@ -30,6 +30,14 @@ export interface EngineeringConventions {
   documentation: string;
 }
 
+export interface GenerationLogEntry {
+  step: string;
+  detail: string;
+  evidence?: string;
+  role?: string;
+  outcome?: string;
+}
+
 export interface TeamConfig {
   schemaVersion: 1;
   projectName: string;
@@ -40,6 +48,7 @@ export interface TeamConfig {
   workflow: WorkflowStep[];
   agents: AgentRole[];
   conventions: EngineeringConventions;
+  generationLog?: GenerationLogEntry[];
 }
 
 export interface ProjectDraft {

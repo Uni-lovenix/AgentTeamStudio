@@ -64,6 +64,7 @@ React 18 application bundled by Vite:
 
 - `Sidebar` -- local project draft list, create/delete, settings entry.
 - `RequirementEditor` -- project name, requirement text, tech stack hints, generation controls.
+- `GenerationLog` -- renders the decision log explaining why each responsibility area and role was generated.
 - `TeamPreview` -- editable agent roles, workflow, and engineering conventions.
 - `ExportPanel` -- select target directory and write generated files.
 - `SettingsPanel` -- optional LLM provider settings and connection test.
@@ -78,7 +79,8 @@ React 18 application bundled by Vite:
 3. `TeamGenerationService` validates the requirement and calls `buildTeamConfig`.
 4. `RequirementAnalyzer` scans the requirement and tech hints to identify responsibility areas that must be completed.
 5. Each responsibility area becomes a role with a mission, concrete responsibilities, skills, tools, and deliverables.
-6. Renderer saves the result as a local `ProjectDraft`.
+6. The generated `TeamConfig` includes a `generationLog` that records the decision steps.
+7. Renderer saves the result as a local `ProjectDraft` and renders the log in `GenerationLog`.
 
 ### Optional LLM Generation
 

@@ -24,6 +24,11 @@ describe('requirement-analyzer', () => {
     expect(team.techStackHints).toContain('React');
     expect(team.workflow.length).toBeGreaterThanOrEqual(4);
     expect(team.agents.every((agent) => agent.responsibilities.length > 0)).toBe(true);
+    expect(
+      team.generationLog?.some(
+        (entry) => entry.step === '角色生成' && entry.detail.includes('账户与权限负责人')
+      )
+    ).toBe(true);
   });
 
   it('adds AI and data engineers for AI requirements', () => {
@@ -34,6 +39,7 @@ describe('requirement-analyzer', () => {
     expect(team.projectName).toBe('未命名项目');
     expect(team.agents.some((agent) => agent.name.includes('数据'))).toBe(true);
     expect(team.agents.some((agent) => agent.name.includes('AI'))).toBe(true);
+    expect(team.generationLog?.some((entry) => entry.step === '责任识别')).toBe(true);
   });
 
   it('assigns each requirement-specific role concrete responsibilities', () => {
@@ -78,5 +84,6 @@ describe('requirement-analyzer', () => {
     expect(team.agents[0].name).toBe('开发者');
     expect(team.agents[0].responsibilities).toEqual(['写代码']);
     expect(team.conventions.branch).toBeTruthy();
+    expect(team.generationLog?.some((entry) => entry.step === 'LLM 解析')).toBe(true);
   });
 });

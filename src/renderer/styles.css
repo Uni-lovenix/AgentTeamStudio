@@ -193,6 +193,7 @@ button:disabled {
 .requirement-editor,
 .team-preview,
 .export-panel,
+.generation-log,
 .empty-team {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -360,6 +361,93 @@ button:disabled {
 .empty-note {
   color: var(--muted);
   font-size: 12px;
+}
+
+.generation-log {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.generation-log .section-title > svg {
+  color: var(--accent);
+}
+
+.log-status {
+  margin-left: auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--amber-soft);
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.generation-log-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.generation-log-list li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.log-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.log-content {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.log-detail {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.log-evidence,
+.log-role,
+.log-outcome {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.log-evidence code {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #eef2f6;
+  color: #334155;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px;
+  word-break: break-word;
+}
+
+.log-role strong {
+  color: var(--accent-strong);
 }
 
 .workspace-grid {

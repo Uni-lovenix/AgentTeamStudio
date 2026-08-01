@@ -1,6 +1,7 @@
 import {
   GenerateTeamInput,
   GenerateTeamResult,
+  GenerationLogEntry,
 } from '../shared/types';
 import { buildTeamConfig } from './requirement-analyzer';
 import { LlmClient } from './llm-client';
@@ -34,6 +35,18 @@ export class TeamGenerationService {
       const clientSettings = this.settingsService.getClientSettings();
       if (!clientSettings.apiKey) {
         warnings.push('未配置 API Key，本次使用需求驱动生成。');
+        team = {
+          ...team,
+          generationLog: [
+            ...(team.generationLog ?? []),
+            {
+              step: '生成方式',
+              detail: '未配置 API Key，所以本次生成直接使用本地需求驱动。',
+              evidence: 'LLM 未启用',
+              outcome: `生成角色：${team.agents.map((agent) => agent.name).join('、')}`,
+            } satisfies GenerationLogEntry,
+          ],
+        };
       } else {
         llmAttempted = true;
         try {
@@ -41,6 +54,18 @@ export class TeamGenerationService {
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           warnings.push(`LLM 生成失败，已回退到需求驱动生成：${message}`);
+          team = {
+            ...team,
+            generationLog: [
+              ...(team.generationLog ?? []),
+              {
+                step: 'LLM 回退',
+                detail: `LLM 调用失败（${message}），重新运行需求驱动生成。`,
+                evidence: message,
+                outcome: `回退角色：${team.agents.map((agent) => agent.name).join('、')}`,
+              } satisfies GenerationLogEntry,
+            ],
+          };
           this.log.warn('LLM generation failed, falling back to local template', {
             error: message,
           });
