@@ -1,0 +1,20 @@
+appId: com.agentteamstudio.app
+productName: Agent Team Studio
+artifactName: AgentTeamStudio-${version}-${os}-${arch}.${ext}
+directories:
+  output: dist
+files:
+  - dist/main/**/*
+  - dist/preload/**/*
+  - dist/renderer/**/*
+  - package.json
+mac:
+  target:
+    - zip
+  category: public.app-category.developer-tools
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - arm64

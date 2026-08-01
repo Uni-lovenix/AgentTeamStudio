@@ -1,0 +1,17 @@
+node_modules/
+dist/**
+!dist/AgentTeamStudio-*
+!dist/SHA256SUMS.txt
+# Combined Windows installer exceeds GitHub's 100 MiB file limit.
+dist/AgentTeamStudio-0.1.0-win.*
+release/
+coverage/
+.DS_Store
+*.log
+
+# Local agent handoff and state files, not intended for the public repository.
+AGENTS.md
+claude-progress.md
+clean-state-checklist.md
+feature_list.json
+session-handoff.md

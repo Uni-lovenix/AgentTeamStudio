@@ -1,0 +1,3 @@
+6625468ddcad59c25c0d724f420d41aa1a4ca224d80951b9d36fa6cdcbf5be00  AgentTeamStudio-0.1.0-mac-arm64.zip
+1a06639171646c2edab9646ab46c1ddb21edc9e9a5731b44b9f25257ad77f300  AgentTeamStudio-0.1.0-win-x64.exe
+800b8f08113cbdd0364636b3759c13fd323b8487e65289bba3d06e9200aa66cd  AgentTeamStudio-0.1.0-win-arm64.exe

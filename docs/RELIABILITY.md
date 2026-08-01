@@ -1,0 +1,70 @@
+# Reliability -- Observability, Secrets, Clean State, Benchmarking
+
+## Structured Logging
+
+All services emit single-line JSON log entries:
+
+```json
+{
+  "timestamp": "2026-08-01T03:00:00.000Z",
+  "level": "INFO",
+  "service": "team-generation-service",
+  "message": "Team generated",
+  "data": { "source": "local", "agentCount": 5, "llmAttempted": false }
+}
+```
+
+Levels:
+
+- DEBUG: routine data access, file reads, settings reads.
+- INFO: generation, save, export, reset, settings changes.
+- WARN: LLM failure fallback, missing non-critical data.
+- ERROR: failures, parse errors, export errors.
+
+Set `LOG_LEVEL=DEBUG|INFO|WARN|ERROR` to control output. Default is DEBUG.
+
+## LLM API Key Handling
+
+- API keys never return to the renderer.
+- Settings snapshots expose only `hasApiKey`.
+- Keys are encrypted with Electron `safeStorage` on supported systems.
+- Keys are never written into target project directories.
+- If encryption is unavailable, saving an API key fails with a clear error.
+
+## Clean State Reset
+
+The in-app Reset button and `app:reset` IPC:
+
+- Clear local project drafts and settings.
+- Recreate the local app data directory.
+- Never delete or modify files inside user-selected project directories.
+
+## Cleanup Scanner
+
+`bash scripts/cleanup-scanner.sh` checks:
+
+- Required harness files and docs exist.
+- No stale `.tmp` or `.bak` files in source, test, or script directories.
+- Reports missing build or harness artifacts.
+
+## Benchmarking
+
+`bash scripts/benchmark.sh` runs the production build and then measures:
+
+- Local requirement analysis for 5 requirements across 5 runs.
+- Atomic project export for 10 writes.
+- Generated team validation.
+
+Targets:
+
+- Average analysis: under 500ms.
+- Average export: under 100ms.
+- Generated agent count: at least 3.
+
+## Cross-Platform Packaging
+
+`electron-builder.yml` defines macOS DMG and Windows NSIS targets.
+
+- Run `npm run dist:mac` on macOS.
+- Run `npm run dist:win` on Windows or a compatible CI environment.
+- Actual Windows smoke testing requires a Windows environment or CI runner.
