@@ -44,7 +44,8 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 - Inspect whether `AGENTS.team.md` or `agents.json` already exist.
 - Inspect whether the `agents/` directory already exists.
 - Require user confirmation before overwriting generated team files.
-- Write `AGENTS.team.md`, `agents.json`, and one Markdown file per agent under `agents/` atomically.
+- Write `AGENTS.team.md` as the team-level router, `agents.json`, and one Markdown file per agent under `agents/` atomically.
+- Role details live only in `agents/*.md`; `AGENTS.team.md` routes each agent to its own file instead of duplicating them.
 - If `AGENTS.md` or `CLAUDE.md` exists, append a pointer to `AGENTS.team.md` while preserving the existing rules.
 
 ### Settings and Status

@@ -94,7 +94,7 @@ React 18 application bundled by Vite:
 2. Renderer calls `team.inspect` to check existing `AGENTS.team.md`, `agents.json`, `agents/`, and whether `AGENTS.md` or `CLAUDE.md` exists.
 3. User confirms overwrite when `AGENTS.team.md` or `agents.json` already exist.
 4. Renderer calls `team.write`.
-5. `ProjectWriter` writes `AGENTS.team.md`, `agents.json`, and one Markdown file per agent under `agents/` atomically with temp-file rename.
+5. `ProjectWriter` writes `AGENTS.team.md` as the team-level router, `agents.json`, and one Markdown file per agent under `agents/` atomically with temp-file rename.
 6. For each existing rule file (`AGENTS.md`, `CLAUDE.md`), it appends a pointer to `AGENTS.team.md` without overwriting existing rules.
 7. Result is persisted on the local draft and shown in the status bar.
 
@@ -129,7 +129,7 @@ settings.json    # LLM settings and encrypted API key material
 Exported project data:
 
 ```
-AGENTS.team.md   # generated multi-agent instructions
+AGENTS.team.md   # team-level rules and agent routing index
 agents.json      # schema version 1 machine-readable team config
 agents/          # one Markdown file per agent
 AGENTS.md        # existing Codex rules, only receives a pointer when present

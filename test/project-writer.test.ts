@@ -53,7 +53,8 @@ describe('project-writer', () => {
     expect(fs.existsSync(path.join(dir, 'CLAUDE.md'))).toBe(false);
     expect(writer.inspectTarget(dir).existingRuleFiles).toEqual([]);
     expect(renderTeamMarkdown(team)).toContain('# Demo 智能体团队');
-    expect(renderTeamMarkdown(team)).toContain('## 智能体文件');
+    expect(renderTeamMarkdown(team)).toContain('## 智能体路由');
+    expect(renderTeamMarkdown(team)).not.toContain(`### ${team.agents[0].name}`);
   });
 
   it('refuses to overwrite unless explicitly allowed', () => {

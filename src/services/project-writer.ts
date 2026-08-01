@@ -94,31 +94,11 @@ function agentFileEntries(team: TeamConfig): Array<{ filename: string; content: 
 }
 
 export function renderTeamMarkdown(team: TeamConfig): string {
-  const roleSections = team.agents
+  const agentRoutingSections = team.agents
     .map(
-      (agent) => `### ${agent.name}
-
-使命：${agent.mission}
-
-职责：
-${bulletItems(agent.responsibilities)}
-
-技能：${agent.skills.join('、') || '未指定'}
-
-工具：${agent.tools.join('、') || '未指定'}
-
-交付物：
-${bulletItems(agent.deliverables)}
-
-依赖角色：${agent.dependsOn.join('、') || '无'}
-
-通知角色：${agent.notifies.join('、') || '无'}
-`
+      (agent, index) =>
+        `- ${agent.name}：读取 \`agents/${safeAgentFileName(agent, index)}\`，严格遵守该文件中的使命、职责、技能、工具和交付物。`
     )
-    .join('\n');
-
-  const agentFileSections = team.agents
-    .map((agent, index) => `- \`agents/${safeAgentFileName(agent, index)}\`：${agent.name}`)
     .join('\n');
 
   const workflowSections = team.workflow
@@ -139,13 +119,11 @@ ${team.requirement}
 
 生成方式：${team.generatedBy === 'llm' ? 'LLM 辅助生成' : '需求驱动生成'}
 
-## 团队角色
+## 智能体路由
 
-${roleSections}
+每个智能体开始工作前，必须读取与自身角色对应的文件；其他角色的规则文件不需要加载。
 
-## 智能体文件
-
-${agentFileSections}
+${agentRoutingSections}
 
 ## 协作流程
 

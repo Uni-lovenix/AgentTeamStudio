@@ -4,7 +4,7 @@ Agent Team Studio 是一个跨平台桌面应用，支持 Windows 和 macOS。�
 
 生成的配置：
 
-- `AGENTS.team.md`：供人和 AI agent 阅读的团队说明与协作规范。
+- `AGENTS.team.md`：团队级规则、智能体路由、协作流程和工程约定；不重复每个角色的完整明细。
 - `agents.json`：机器可读的团队配置，schema version 为 1。
 - `agents/`：每个智能体一个独立 Markdown 文件，包含该角色的使命、职责、技能、工具、交付物和协作流程。
 - 如果目标目录已存在 `AGENTS.md` 或 `CLAUDE.md`，应用向这些文件追加一行规则入口指向 `AGENTS.team.md`，不会覆盖原有规则。
@@ -111,7 +111,7 @@ LLM 返回结果会经过结构校验。如果请求失败、超时或返回格�
 
 导出后，目标项目目录中可能包含：
 
-- `AGENTS.team.md`：由团队配置生成的智能体规则说明，包含角色、职责、协作流程和工程约定。
+- `AGENTS.team.md`：团队级规则和智能体路由，协作流程与工程约定；每个角色的完整明细只存在于 `agents/*.md`。
 - `agents.json`：完整的机器可读团队配置。
 - `agents/`：每个智能体一个独立 Markdown 文件。
 - `AGENTS.md` / `CLAUDE.md`：项目原有规则文件；应用不会覆盖它们，只会在这些文件存在时追加一行指向 `AGENTS.team.md` 的规则入口。
