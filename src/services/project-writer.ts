@@ -1,12 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { TeamConfig, WriteTeamResult } from '../shared/types';
+import { AgentRole, TeamConfig, WriteTeamResult } from '../shared/types';
 import { logger } from './logger';
 
 const SERVICE = 'project-writer';
 
 export const TEAM_RULES_FILENAME = 'AGENTS.team.md';
 export const AGENTS_JSON_FILENAME = 'agents.json';
+export const AGENTS_DIRECTORY = 'agents';
 export const CLAUDE_RULES_FILENAME = 'CLAUDE.md';
 export const CODEX_RULES_FILENAME = 'AGENTS.md';
 export const AGENT_RULES_FILENAMES = [
@@ -22,6 +23,74 @@ export interface TargetInspection {
 
 function bulletItems(items: string[]): string {
   return items.map((item) => `- ${item}`).join('\n');
+}
+
+function bulletOrNone(items: string[]): string {
+  return bulletItems(items) || '- 无';
+}
+
+function safeAgentFileName(agent: AgentRole, index: number): string {
+  const base =
+    agent.name
+      .trim()
+      .replace(/[\\/:*?"<>|#%{}~^[\]]/g, '-')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^[.-]+|[.-]+$/g, '')
+      .slice(0, 80) || `agent-${index + 1}`;
+  return `${String(index + 1).padStart(2, '0')}-${base}.md`;
+}
+
+export function renderAgentMarkdown(agent: AgentRole, team: TeamConfig): string {
+  const ownedSteps =
+    team.workflow
+      .filter((step) => step.ownerRoleId === agent.id)
+      .map((step, index) => `${index + 1}. **${step.name}**：${step.description}`)
+      .join('\n') || '- 未分配独立协作步骤。';
+
+  return `# ${agent.name}
+
+> 本文件由 Agent Team Studio 生成。
+
+## 使命
+
+${agent.mission}
+
+## 职责
+
+${bulletOrNone(agent.responsibilities)}
+
+## 技能
+
+${bulletOrNone(agent.skills)}
+
+## 工具
+
+${bulletOrNone(agent.tools)}
+
+## 交付物
+
+${bulletOrNone(agent.deliverables)}
+
+## 依赖角色
+
+${bulletOrNone(agent.dependsOn)}
+
+## 通知角色
+
+${bulletOrNone(agent.notifies)}
+
+## 协作流程
+
+${ownedSteps}
+`;
+}
+
+function agentFileEntries(team: TeamConfig): Array<{ filename: string; content: string }> {
+  return team.agents.map((agent, index) => ({
+    filename: `${AGENTS_DIRECTORY}/${safeAgentFileName(agent, index)}`,
+    content: renderAgentMarkdown(agent, team),
+  }));
 }
 
 export function renderTeamMarkdown(team: TeamConfig): string {
@@ -48,6 +117,10 @@ ${bulletItems(agent.deliverables)}
     )
     .join('\n');
 
+  const agentFileSections = team.agents
+    .map((agent, index) => `- \`agents/${safeAgentFileName(agent, index)}\`：${agent.name}`)
+    .join('\n');
+
   const workflowSections = team.workflow
     .map(
       (step) => `1. **${step.name}**：${step.description}（负责人：${team.agents.find((agent) => agent.id === step.ownerRoleId)?.name ?? '待分配'}）`
@@ -69,6 +142,11 @@ ${team.requirement}
 ## 团队角色
 
 ${roleSections}
+
+## 智能体文件
+
+${agentFileSections}
+
 ## 协作流程
 
 ${workflowSections}
@@ -114,6 +192,9 @@ export class ProjectWriter {
           existingFiles.push(filename);
         }
       }
+      if (fs.existsSync(path.join(absolute, AGENTS_DIRECTORY))) {
+        existingFiles.push(`${AGENTS_DIRECTORY}/`);
+      }
     }
     return { directoryExists, existingFiles, existingRuleFiles };
   }
@@ -135,15 +216,18 @@ export class ProjectWriter {
     const files = [
       { filename: TEAM_RULES_FILENAME, content: renderTeamMarkdown(team) },
       { filename: AGENTS_JSON_FILENAME, content: `${JSON.stringify(team, null, 2)}\n` },
+      ...agentFileEntries(team),
     ];
     const createdFiles: string[] = [];
     const overwrittenFiles: string[] = [];
+    fs.mkdirSync(path.join(absolute, AGENTS_DIRECTORY), { recursive: true });
     for (const file of files) {
       const fullPath = path.join(absolute, file.filename);
+      const existed = fs.existsSync(fullPath);
       const tempPath = `${fullPath}.tmp`;
       fs.writeFileSync(tempPath, file.content, 'utf-8');
       fs.renameSync(tempPath, fullPath);
-      if (existing.includes(file.filename)) {
+      if (existed) {
         overwrittenFiles.push(file.filename);
       } else {
         createdFiles.push(file.filename);

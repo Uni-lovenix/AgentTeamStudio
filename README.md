@@ -6,6 +6,7 @@ Agent Team Studio 是一个跨平台桌面应用，支持 Windows 和 macOS。�
 
 - `AGENTS.team.md`：供人和 AI agent 阅读的团队说明与协作规范。
 - `agents.json`：机器可读的团队配置，schema version 为 1。
+- `agents/`：每个智能体一个独立 Markdown 文件，包含该角色的使命、职责、技能、工具、交付物和协作流程。
 - 如果目标目录已存在 `AGENTS.md` 或 `CLAUDE.md`，应用向这些文件追加一行规则入口指向 `AGENTS.team.md`，不会覆盖原有规则。
 
 当前版本只负责团队配置的生成和导出，不执行多智能体工作流。
@@ -42,7 +43,7 @@ shasum -a 256 AgentTeamStudio-0.1.0-mac-arm64.zip AgentTeamStudio-0.1.0-win-x64.
 - 可选 OpenAI 兼容或 Anthropic/MiniMax 兼容 LLM 生成更贴合需求的团队配置。
 - 编辑角色名称、使命、职责、技能、工具、交付物、依赖和通知关系。
 - 编辑协作流程和分支、提交、PR、测试、文档约定。
-- 将配置原子写入用户选择的已有项目目录，团队配置使用 `AGENTS.team.md`，不覆盖 `AGENTS.md` / `CLAUDE.md`。
+- 将配置原子写入用户选择的已有项目目录，团队配置使用 `AGENTS.team.md`、`agents.json` 和 `agents/` 下的独立角色文件，不覆盖 `AGENTS.md` / `CLAUDE.md`。
 - 本地保存多个项目草稿，重启后仍可继续编辑。
 - API Key 使用 Electron `safeStorage` 加密保存，不会写入目标项目。
 - 内置结构化日志、干净状态重置、基准脚本和清理扫描器。
@@ -84,8 +85,8 @@ bash init.sh
 4. 如需 LLM 生成，在设置中启用 LLM，选择 OpenAI 兼容或 Anthropic 兼容协议，并配置 Base URL、模型和 API Key。
 5. 在团队预览中调整角色、流程和约定。
 6. 点击“选择项目目录”，指定一个已有的项目目录。
-7. 点击“写入项目目录”，应用会生成 `AGENTS.team.md` 和 `agents.json`。
-8. 如果目录中已存在 `AGENTS.team.md` 或 `agents.json`，应用会要求确认后才覆盖。
+7. 点击“写入项目目录”，应用会生成 `AGENTS.team.md`、`agents.json`，以及 `agents/` 下每个智能体一个 Markdown 文件。
+8. 如果目录中已存在这些团队文件或 `agents/` 目录，应用会要求确认后才覆盖。
 9. 如果目录中已存在 `AGENTS.md` 或 `CLAUDE.md`，应用会向存在的规则文件追加“使用智能体规则在 AGENTS.team.md 文件”，并保留原内容。
 
 重置按钮只清除应用本地的项目草稿和设置，不会删除或修改目标项目目录中的文件。
@@ -112,6 +113,7 @@ LLM 返回结果会经过结构校验。如果请求失败、超时或返回格�
 
 - `AGENTS.team.md`：由团队配置生成的智能体规则说明，包含角色、职责、协作流程和工程约定。
 - `agents.json`：完整的机器可读团队配置。
+- `agents/`：每个智能体一个独立 Markdown 文件。
 - `AGENTS.md` / `CLAUDE.md`：项目原有规则文件；应用不会覆盖它们，只会在这些文件存在时追加一行指向 `AGENTS.team.md` 的规则入口。
 
 `agents.json` 中的单个角色结构如下：

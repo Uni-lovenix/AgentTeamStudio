@@ -33,14 +33,27 @@ describe('project-writer', () => {
 
     const result = writer.writeToDirectory(team, dir, false);
 
-    expect(result.createdFiles).toEqual(['AGENTS.team.md', 'agents.json']);
+    expect(result.createdFiles).toEqual(
+      expect.arrayContaining(['AGENTS.team.md', 'agents.json'])
+    );
+    expect(result.createdFiles.filter((file) => file.startsWith('agents/'))).toHaveLength(
+      team.agents.length
+    );
     expect(result.overwrittenFiles).toEqual([]);
     expect(fs.existsSync(path.join(dir, 'AGENTS.team.md'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'agents.json'))).toBe(true);
+    const agentFiles = fs.readdirSync(path.join(dir, 'agents'));
+    expect(agentFiles).toHaveLength(team.agents.length);
+    expect(
+      agentFiles.some((file) =>
+        fs.readFileSync(path.join(dir, 'agents', file), 'utf-8').includes(team.agents[0].name)
+      )
+    ).toBe(true);
     expect(fs.existsSync(path.join(dir, 'AGENTS.md'))).toBe(false);
     expect(fs.existsSync(path.join(dir, 'CLAUDE.md'))).toBe(false);
     expect(writer.inspectTarget(dir).existingRuleFiles).toEqual([]);
     expect(renderTeamMarkdown(team)).toContain('# Demo 智能体团队');
+    expect(renderTeamMarkdown(team)).toContain('## 智能体文件');
   });
 
   it('refuses to overwrite unless explicitly allowed', () => {
@@ -54,7 +67,12 @@ describe('project-writer', () => {
 
     expect(() => writer.writeToDirectory(team, dir, false)).toThrow(/需要覆盖/);
     const overwrite = writer.writeToDirectory(team, dir, true);
-    expect(overwrite.overwrittenFiles).toEqual(['AGENTS.team.md', 'agents.json']);
+    expect(overwrite.overwrittenFiles).toEqual(
+      expect.arrayContaining(['AGENTS.team.md', 'agents.json'])
+    );
+    expect(overwrite.overwrittenFiles.filter((file) => file.startsWith('agents/'))).toHaveLength(
+      team.agents.length
+    );
   });
 
   it('appends a pointer to existing AGENTS.md without replacing its rules', () => {

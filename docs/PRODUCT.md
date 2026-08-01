@@ -42,8 +42,9 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 ### Export to Project Directory
 - Select an existing project directory with a native dialog.
 - Inspect whether `AGENTS.team.md` or `agents.json` already exist.
+- Inspect whether the `agents/` directory already exists.
 - Require user confirmation before overwriting generated team files.
-- Write `AGENTS.team.md` and `agents.json` atomically.
+- Write `AGENTS.team.md`, `agents.json`, and one Markdown file per agent under `agents/` atomically.
 - If `AGENTS.md` or `CLAUDE.md` exists, append a pointer to `AGENTS.team.md` while preserving the existing rules.
 
 ### Settings and Status
@@ -62,5 +63,5 @@ The first screen is the working tool: left sidebar for project drafts, center ar
 - Export target must be an existing project directory.
 - No new project scaffolding in this version.
 - No network requests except optional LLM calls.
-- Generated files are `AGENTS.team.md` and `agents.json`.
+- Generated files are `AGENTS.team.md`, `agents.json`, and `agents/*.md` for each agent.
 - Existing `AGENTS.md` and `CLAUDE.md` are never overwritten; each existing rule file only receives an appended rules pointer.

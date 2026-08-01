@@ -28,6 +28,7 @@ export function ExportPanel({
       <code className="path-output">{targetPath || '尚未选择目录'}</code>
       <div className="export-note">AGENTS.team.md</div>
       <div className="export-note">agents.json</div>
+      <div className="export-note">agents/ 每角色一个 md</div>
       <div className="export-note">AGENTS.md / CLAUDE.md（存在时追加）</div>
       <button
         className="primary-button export-button"
