@@ -108,6 +108,12 @@ LLM 返回结果会经过结构校验。如果请求失败、超时或返回格�
 
 ## 生成文件示例
 
+导出后，目标项目目录中可能包含：
+
+- `AGENTS.team.md`：由团队配置生成的智能体规则说明，包含角色、职责、协作流程和工程约定。
+- `agents.json`：完整的机器可读团队配置。
+- `AGENTS.md` / `CLAUDE.md`：项目原有规则文件；应用不会覆盖它们，只会在这些文件存在时追加一行指向 `AGENTS.team.md` 的规则入口。
+
 `agents.json` 中的单个角色结构如下：
 
 ```json
@@ -158,10 +164,10 @@ scripts/       开发、基准、清理脚本
 当前仓库已通过以下验证：
 
 - `npm run check`
-- `npm test`（20 个测试用例）
+- `npm test`（24 个测试用例）
 - `npm run build`
 - `bash init.sh`
-- `bash scripts/benchmark.sh`
+- `bash scripts/benchmark.sh`（3/3）
 - `npm run dev` Electron 窗口启动
 - `npm run dist:mac` macOS ZIP 应用包构建
 - `npm run dist:win` Windows x64/ARM64 NSIS 安装包构建
