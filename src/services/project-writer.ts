@@ -54,7 +54,7 @@ ${team.requirement}
 
 技术栈提示：${team.techStackHints.join('、') || '未指定'}
 
-生成方式：${team.generatedBy === 'llm' ? 'LLM 辅助生成' : '本地模板'}
+生成方式：${team.generatedBy === 'llm' ? 'LLM 辅助生成' : '需求驱动生成'}
 
 ## 团队角色
 

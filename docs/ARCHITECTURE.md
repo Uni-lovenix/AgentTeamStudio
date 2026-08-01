@@ -76,8 +76,8 @@ React 18 application bundled by Vite:
 1. User enters requirement and clicks Generate.
 2. Renderer calls `window.agentTeamStudio.team.generate`.
 3. `TeamGenerationService` validates the requirement and calls `buildTeamConfig`.
-4. `RequirementAnalyzer` detects project type and stack keywords.
-5. It returns roles, workflow, and conventions.
+4. `RequirementAnalyzer` scans the requirement and tech hints to identify responsibility areas that must be completed.
+5. Each responsibility area becomes a role with a mission, concrete responsibilities, skills, tools, and deliverables.
 6. Renderer saves the result as a local `ProjectDraft`.
 
 ### Optional LLM Generation
@@ -86,7 +86,7 @@ React 18 application bundled by Vite:
 2. `SettingsService` stores the API key encrypted with Electron `safeStorage`.
 3. `LlmClient` calls OpenAI-compatible `/chat/completions` or Anthropic-compatible `/v1/messages` from the main process.
 4. `normalizeTeamConfig` validates the returned JSON and applies fallback defaults.
-5. On failure, `TeamGenerationService` falls back to local generation and returns a warning.
+5. On failure, `TeamGenerationService` falls back to requirement-driven local generation and returns a warning.
 
 ### Export Flow
 

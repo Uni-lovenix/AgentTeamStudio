@@ -36,7 +36,7 @@ function createRole(
 }
 
 const DEFAULT_CONVENTIONS: EngineeringConventions = {
-  branch: '每个功能使用独立分支，分支名格式为 feature/<功能名>。',
+  branch: '每个交付责任区块使用独立分支，分支名格式为 feature/<责任区块名>。',
   commits: '提交信息使用简洁中文或英文，说明变更意图并关联对应需求。',
   pullRequests: '每个分支提交 PR，描述变更、测试结果和影响范围，由非作者角色评审。',
   testing: '实现完成后必须运行类型检查、单元测试和相关手工验证。',
@@ -51,170 +51,463 @@ export function parseTechStackHints(value?: string): string[] {
     .filter(Boolean);
 }
 
-function detectStack(requirement: string): {
-  web: boolean;
-  backend: boolean;
-  mobile: boolean;
-  desktop: boolean;
-  ai: boolean;
-  data: boolean;
-  cli: boolean;
-} {
-  const text = requirement.toLowerCase();
-  return {
-    web: /web|前端|frontend|react|vue|browser|website|saas|网站|管理后台|h5|ui/i.test(text),
-    backend: /后端|backend|api|server|服务端|数据库|微服务|microservice|auth|middleware/i.test(text),
-    mobile: /移动端|mobile|ios|android|app端|h5 app/i.test(text),
-    desktop: /桌面|desktop|electron|windows|mac|客户端|client/i.test(text),
-    ai: /ai|llm|大模型|智能体|agent|模型|推理|prompt|rag/i.test(text),
-    data: /数据|data|etl|报表|分析|analytics|pipeline/i.test(text),
-    cli: /命令行|cli|终端|terminal|脚本工具/i.test(text),
-  };
+interface ConcernRoleSpec {
+  key: string;
+  name: string;
+  mission: string;
+  responsibilities: string[];
+  skills: string[];
+  tools: string[];
+  deliverables: string[];
+  dependsOn: string[];
+  notifies: string[];
+  pattern: RegExp;
+}
+
+const CONCERN_ROLES: ConcernRoleSpec[] = [
+  {
+    key: 'account',
+    name: '账户与权限负责人',
+    mission: '保证身份、账户、权限和数据可见范围完整可审计。',
+    responsibilities: [
+      '设计注册、登录、认证、会话和找回流程',
+      '定义用户、角色、权限与数据隔离规则',
+      '梳理异常登录、越权访问和审计需求',
+    ],
+    skills: ['身份认证', '权限模型', '审计'],
+    tools: ['权限矩阵', '认证方案', '审计清单'],
+    deliverables: ['账户流程说明', '权限矩阵', '审计清单'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /登录|注册|认证|身份|账号|账户|用户|会员|权限|授权|oauth|sso|saml/i,
+  },
+  {
+    key: 'transaction',
+    name: '交易与支付负责人',
+    mission: '保证交易、支付、结算和账务数据在完整生命周期内一致可追踪。',
+    responsibilities: [
+      '设计订单、支付、退款、结算等状态与流程',
+      '明确金额、库存、优惠、发票和异常处理规则',
+      '定义交易流水、对账和差错恢复方案',
+    ],
+    skills: ['交易流程设计', '对账', '异常处理'],
+    tools: ['状态机', '支付接口', '对账工具'],
+    deliverables: ['交易流程说明', '对账方案', '差错清单'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /订单|下单|支付|退款|结算|账单|交易|库存|购物车|优惠|价格|发票|对账/i,
+  },
+  {
+    key: 'content',
+    name: '内容与审核负责人',
+    mission: '保证内容的发布、分类、审核和展示符合产品规则。',
+    responsibilities: [
+      '明确内容类型、发布流程、分类和标签规则',
+      '设计内容审核、举报、下架和恢复机制',
+      '定义内容质量、时效和社区秩序标准',
+    ],
+    skills: ['内容治理', '审核规则', '社区运营'],
+    tools: ['内容管理后台', '审核队列'],
+    deliverables: ['内容规则', '审核流程', '内容运营方案'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /内容|文章|帖子|社区|评论|审核|发布|分类|标签|ugc|feed|短视频|视频|直播/i,
+  },
+  {
+    key: 'messaging',
+    name: '消息与通知负责人',
+    mission: '保证关键消息按用户偏好及时、可靠地触达用户。',
+    responsibilities: [
+      '梳理消息类型、触发时机和接收对象',
+      '设计站内信、推送、短信或邮件的优先级与去重规则',
+      '定义失败重试、退订和消息追踪方案',
+    ],
+    skills: ['消息渠道', '触达策略', '失败重试'],
+    tools: ['消息模板', '推送/邮件服务'],
+    deliverables: ['消息触达方案', '模板清单', '失败处理方案'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /消息|通知|推送|短信|邮件|站内信|提醒|订阅|公告/i,
+  },
+  {
+    key: 'data',
+    name: '数据与报表负责人',
+    mission: '让项目所需的数据采集、统计、分析和报表可解释可验证。',
+    responsibilities: [
+      '梳理关键指标、数据口径和报表需求',
+      '设计数据采集、清洗、计算和导出流程',
+      '定义数据质量检查、权限和异常提示规则',
+    ],
+    skills: ['数据分析', '指标体系', '数据质量'],
+    tools: ['数据看板', '报表工具'],
+    deliverables: ['指标定义', '数据流程', '报表样例'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /数据|报表|统计|分析|看板|指标|仪表盘|etl|pipeline/i,
+  },
+  {
+    key: 'ai',
+    name: 'AI 与智能体负责人',
+    mission: '把模型或智能体能力转化为符合需求、可评估、可兜底的业务能力。',
+    responsibilities: [
+      '明确模型或智能体要完成的任务、输入输出和约束',
+      '设计提示词、工具调用、上下文、评测和兜底策略',
+      '定义成本、延迟、安全和结果质量指标',
+    ],
+    skills: ['LLM 应用', 'Agent 工作流', '评测'],
+    tools: ['Prompt 调试', '评测集', '观测工具'],
+    deliverables: ['AI 方案', '评测报告', '兜底策略'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /ai|llm|大模型|智能体|agent|模型|推理|prompt|rag|提示词|生成式/i,
+  },
+  {
+    key: 'search',
+    name: '搜索与推荐负责人',
+    mission: '保证用户能按相关规则快速找到或获得正确内容。',
+    responsibilities: [
+      '明确搜索或推荐的目标、数据范围和排序规则',
+      '设计索引、过滤、排序、分页和空结果处理',
+      '定义相关性、准确性、性能与反馈闭环',
+    ],
+    skills: ['搜索设计', '相关性排序', '检索评测'],
+    tools: ['索引方案', '搜索调试工具'],
+    deliverables: ['搜索或推荐方案', '评测样例', '兜底结果'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /搜索|检索|索引|查询|过滤|排序|推荐|关键词|全文/i,
+  },
+  {
+    key: 'files',
+    name: '文件与同步负责人',
+    mission: '保证文件、导入导出和同步过程完整、安全、可恢复。',
+    responsibilities: [
+      '设计文件上传、下载、格式转换和存储规则',
+      '明确导入导出、同步冲突、备份恢复和权限要求',
+      '定义大文件、断点续传和失败补偿方案',
+    ],
+    skills: ['文件存储', '同步策略', '容灾'],
+    tools: ['对象存储', '同步协议', '备份方案'],
+    deliverables: ['文件流程说明', '同步冲突方案', '备份恢复清单'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /文件|上传|下载|附件|导入|导出|存储|同步|备份|恢复|文档库/i,
+  },
+  {
+    key: 'security',
+    name: '安全与合规负责人',
+    mission: '把安全、隐私和合规要求落到功能与运维的每个环节。',
+    responsibilities: [
+      '识别敏感数据、风险入口和合规要求',
+      '设计认证安全、加密、防刷、审计和应急处置',
+      '定义安全测试范围与上线前检查清单',
+    ],
+    skills: ['安全设计', '隐私合规', '风险评估'],
+    tools: ['威胁建模', '安全扫描', '审计日志'],
+    deliverables: ['安全清单', '合规说明', '应急预案'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /安全|合规|隐私|审计|加密|风险|风控|防刷|防作弊|gdpr|数据保护|敏感/i,
+  },
+  {
+    key: 'performance',
+    name: '性能与可用性负责人',
+    mission: '保证关键路径的响应、容量和可用性满足目标。',
+    responsibilities: [
+      '定义性能目标、压测场景和容量基线',
+      '设计缓存、限流、降级、监控和告警',
+      '建立故障预案、恢复演练和性能回归机制',
+    ],
+    skills: ['性能工程', '容量规划', '可观测性'],
+    tools: ['压测工具', '监控告警', '链路追踪'],
+    deliverables: ['性能目标', '压测报告', '应急预案'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /性能|并发|高可用|缓存|限流|延迟|监控|告警|可观测|稳定性|容灾|扩展/i,
+  },
+  {
+    key: 'integration',
+    name: '集成与迁移负责人',
+    mission: '让外部系统、历史数据和新增能力平滑衔接。',
+    responsibilities: [
+      '梳理需要对接或迁移的系统、数据和协议',
+      '设计接口映射、幂等、重试、兼容和回滚策略',
+      '定义迁移校验、切换和回退验收方案',
+    ],
+    skills: ['系统集成', '迁移设计', '兼容性'],
+    tools: ['API 文档', '迁移工具', '校验脚本'],
+    deliverables: ['集成方案', '迁移计划', '回滚清单'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /集成|对接|第三方|接入|迁移|兼容|webhook|插件|历史数据/i,
+  },
+  {
+    key: 'multi-platform',
+    name: '多端体验负责人',
+    mission: '保证各端在交互、状态和数据一致性上都能完成核心需求。',
+    responsibilities: [
+      '梳理目标端与设备差异，确定体验优先级',
+      '设计各端交互、离线、同步和状态恢复规则',
+      '定义端到端验收场景与平台差异处理',
+    ],
+    skills: ['多端设计', '交互一致性', '端到端验收'],
+    tools: ['设计稿', '设备清单', '端到端场景'],
+    deliverables: ['多端体验方案', '平台差异清单', '验收场景'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /移动|手机|ios|android|桌面|electron|windows|mac|跨平台|客户端|h5|小程序/i,
+  },
+  {
+    key: 'cli',
+    name: '命令行交互负责人',
+    mission: '让命令、参数、输出和错误提示对使用者清晰可靠。',
+    responsibilities: [
+      '定义命令、参数、子命令和帮助信息',
+      '设计输入校验、退出码、日志和错误提示',
+      '保证脚本化、批量执行和自动化接入',
+    ],
+    skills: ['CLI 设计', '输入校验', '脚本化'],
+    tools: ['终端调试', '命令行规范', '自动化脚本'],
+    deliverables: ['命令规范', '帮助文档', '错误码清单'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /命令行|cli|终端|terminal|脚本工具|批量任务/i,
+  },
+  {
+    key: 'workflow',
+    name: '任务与工作流负责人',
+    mission: '把需求中的任务、审批、协作和进度管理做得可追踪可完成。',
+    responsibilities: [
+      '设计任务类型、状态、优先级、负责人和截止时间',
+      '定义审批、协作、提醒和进度更新规则',
+      '输出任务视图、统计口径和完成判定',
+    ],
+    skills: ['工作流设计', '任务建模', '进度管理'],
+    tools: ['任务看板', '状态机', '工作流引擎'],
+    deliverables: ['工作流说明', '任务模型', '进度统计方案'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /任务|工作流|审批|进度|项目管理|协作|待办|todo|kanban|里程碑/i,
+  },
+  {
+    key: 'scheduling',
+    name: '定时与异步任务负责人',
+    mission: '保证定时、队列和异步任务按规则可靠执行并可观测。',
+    responsibilities: [
+      '设计定时任务、调度计划、队列和并发约束',
+      '定义失败重试、幂等、积压和超时处理',
+      '建立任务状态、日志和告警机制',
+    ],
+    skills: ['任务调度', '队列设计', '失败恢复'],
+    tools: ['调度器', '消息队列', '任务监控'],
+    deliverables: ['调度方案', '重试策略', '任务观测清单'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /定时|调度|任务计划|cron|队列|异步|批处理/i,
+  },
+  {
+    key: 'quality',
+    name: '测试与质量负责人',
+    mission: '把测试、回归和质量门禁组织成可执行的交付保障。',
+    responsibilities: [
+      '定义测试范围、优先级、环境与数据准备',
+      '设计单元、集成、端到端和回归测试',
+      '建立缺陷闭环、质量门禁和上线检查',
+    ],
+    skills: ['测试设计', '自动化测试', '质量门禁'],
+    tools: ['测试框架', 'CI/CD', '缺陷管理'],
+    deliverables: ['测试计划', '测试报告', '缺陷清单'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /测试|质检|质量|验收|回归|缺陷|覆盖率|ci|持续集成/i,
+  },
+  {
+    key: 'i18n',
+    name: '国际化与本地化负责人',
+    mission: '保证语言、地区、时区、货币和格式规则在各市场正确。',
+    responsibilities: [
+      '定义支持语言、地区和本地化内容范围',
+      '设计文案、时间、日期、货币和时区规则',
+      '建立翻译、回退和质量检查流程',
+    ],
+    skills: ['国际化设计', '本地化流程', '格式规范'],
+    tools: ['文案管理', '翻译流程', '格式测试'],
+    deliverables: ['国际化规范', '本地化清单', '回退方案'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /国际化|i18n|多语言|本地化|时区|货币/i,
+  },
+  {
+    key: 'accessibility',
+    name: '无障碍与可用性负责人',
+    mission: '保证界面信息和关键操作对更多用户可理解、可操作。',
+    responsibilities: [
+      '识别无障碍目标用户和关键操作路径',
+      '设计对比度、键盘、焦点、读屏和响应式规则',
+      '定义无障碍检查和回归验证',
+    ],
+    skills: ['无障碍设计', '可访问性测试', '响应式设计'],
+    tools: ['读屏工具', '无障碍审计', '键盘测试'],
+    deliverables: ['无障碍规范', '检查清单', '修复记录'],
+    dependsOn: ['需求与验收负责人'],
+    notifies: ['交付协调负责人'],
+    pattern: /无障碍|可访问性|accessibility|a11y|响应式|键盘操作|屏幕阅读/i,
+  },
+];
+
+function firstMatchPosition(text: string, pattern: RegExp): number {
+  const match = new RegExp(pattern.source, pattern.flags).exec(text);
+  return match?.index ?? Number.MAX_SAFE_INTEGER;
+}
+
+function matchedPhrase(text: string, pattern: RegExp): string | undefined {
+  const match = new RegExp(pattern.source, pattern.flags).exec(text);
+  return match?.[0];
 }
 
 export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig {
   const requirement = context.requirement.trim();
   const projectName = context.projectName?.trim() || '未命名项目';
   const techStackHints = parseTechStackHints(context.techStackHints);
-  const stack = detectStack(requirement);
+  const combinedText = `${requirement}\n${techStackHints.join('\n')}`;
+
+  const matchedSpecs = CONCERN_ROLES
+    .map((spec) => ({ spec, position: firstMatchPosition(combinedText, spec.pattern) }))
+    .filter((entry) => entry.position < Number.MAX_SAFE_INTEGER)
+    .sort((left, right) => left.position - right.position)
+    .map((entry) => entry.spec);
 
   const roles: AgentRole[] = [];
   const roleIndex = new Map<string, AgentRole>();
 
   const addRole = (role: AgentRole): void => {
+    if (roleIndex.has(role.name)) return;
     roleIndex.set(role.name, role);
     roles.push(role);
   };
 
   addRole(
     createRole(
-      '产品负责人',
-      '把模糊需求整理成可执行的范围、验收标准和优先级。',
-      ['澄清需求目标与边界', '拆解用户故事和验收标准', '确认非功能需求与风险'],
-      ['需求拆解', '范围管理', '沟通协调'],
-      ['需求文档', '任务看板'],
+      '需求与验收负责人',
+      '把原始需求转成目标、边界、优先级和验收标准，并最终核对交付是否满足需求。',
+      [
+        '把需求整理为目标、边界、优先级和验收标准',
+        '确认每个角色交付物如何满足对应需求',
+        '组织最终验收并记录未满足项',
+      ],
+      ['需求澄清', '验收标准', '结果判断'],
+      ['需求文档', '验收清单'],
       ['需求说明', '验收清单'],
       [],
-      ['架构师', '开发角色']
+      ['交付协调负责人', '文档与交接负责人']
     )
   );
 
   addRole(
     createRole(
-      '架构师',
-      '设计系统边界、模块结构、技术选型和协作契约。',
-      ['确定技术栈与模块边界', '设计数据流和关键接口', '定义评审与演进规则'],
-      ['系统设计', '架构评审', '技术选型'],
-      ['架构图', '接口设计工具'],
-      ['架构说明', '接口契约'],
-      ['产品负责人'],
-      ['开发角色', 'QA', '文档工程师']
+      '交付协调负责人',
+      '识别完成需求必须覆盖的责任区块，并保证各角色交付能集成成最终结果。',
+      [
+        '识别需求中的责任区块与依赖关系',
+        '编排角色交付顺序、集成检查和缺口处理',
+        '汇总风险、交付状态和最终结果',
+      ],
+      ['责任拆解', '依赖管理', '集成协调'],
+      ['交付计划', '任务看板'],
+      ['交付计划', '集成清单', '风险记录'],
+      ['需求与验收负责人'],
+      ['需求与验收负责人', '文档与交接负责人']
     )
   );
 
-  const needsBackend = stack.backend || stack.web || stack.data || stack.ai;
-  if (needsBackend) {
+  for (const spec of matchedSpecs) {
+    if (roleIndex.has(spec.name)) continue;
+    const phrase = matchedPhrase(combinedText, spec.pattern);
+    const responsibilities = phrase
+      ? [...spec.responsibilities, `围绕需求中的“${phrase}”落实可验收交付。`]
+      : spec.responsibilities;
     addRole(
       createRole(
-        '后端工程师',
-        '实现服务端能力、数据存储、API 契约和业务逻辑。',
-        ['实现业务 API', '设计数据模型与持久化', '保障错误处理和安全'],
-        ['后端开发', '数据库设计', 'API 设计'],
-        ['编辑器', '数据库工具', 'API 调试工具'],
-        ['可运行服务', 'API 文档', '测试用例'],
-        ['架构师'],
-        ['前端工程师', 'QA']
-      )
-    );
-  }
-
-  const needsFrontend = stack.web || stack.mobile || stack.desktop || stack.cli;
-  if (needsFrontend) {
-    addRole(
-      createRole(
-        stack.mobile || stack.desktop ? '客户端工程师' : '前端工程师',
-        '实现用户界面、交互状态和端到端可用性。',
-        ['实现界面与交互', '接入业务 API', '处理加载、错误和空状态'],
-        ['前端开发', '响应式设计', '可访问性'],
-        ['编辑器', '浏览器调试工具'],
-        ['可用界面', '组件文档'],
-        needsBackend ? ['后端工程师'] : ['架构师'],
-        ['QA']
-      )
-    );
-  }
-
-  if (stack.ai || stack.data) {
-    addRole(
-      createRole(
-        '数据/AI 工程师',
-        '设计数据处理链路、模型接入和可观测性。',
-        ['设计数据采集与清洗流程', '接入模型或推理服务', '定义评估指标与日志'],
-        ['数据处理', 'LLM 应用', '评测'],
-        ['数据工具', 'Prompt 调试工具'],
-        ['数据处理方案', '评估报告'],
-        needsBackend ? ['后端工程师'] : ['架构师'],
-        ['QA', '文档工程师']
+        spec.name,
+        spec.mission,
+        responsibilities,
+        spec.skills,
+        spec.tools,
+        spec.deliverables,
+        spec.dependsOn,
+        spec.notifies
       )
     );
   }
 
   addRole(
     createRole(
-      'QA 工程师',
-      '验证功能行为、回归风险和验收标准是否被满足。',
-      ['编写测试计划', '执行手工和自动化测试', '跟踪缺陷并验证修复'],
-      ['测试设计', '自动化测试', '缺陷管理'],
-      ['测试框架', '缺陷跟踪工具'],
-      ['测试报告', '缺陷清单'],
-      roles.filter((role) => role.name !== 'QA 工程师').map((role) => role.name),
-      ['产品负责人']
-    )
-  );
-
-  addRole(
-    createRole(
-      '文档工程师',
-      '把需求、架构和交付信息沉淀为团队可读的文档。',
-      ['维护项目说明', '整理接口和运行文档', '记录关键决策'],
-      ['技术写作', '文档结构设计'],
+      '文档与交接负责人',
+      '把需求、决策、接口和运行方式沉淀成可持续交接的文档。',
+      [
+        '维护需求、架构、接口和运行说明',
+        '整理验收记录、交付说明和已知问题',
+        '保证新角色能依据文档继续接手',
+      ],
+      ['技术写作', '文档结构设计', '交付交接'],
       ['Markdown', '知识库工具'],
-      ['项目文档', '交付说明'],
-      roles.filter((role) => role.name !== '文档工程师').map((role) => role.name),
-      ['产品负责人']
+      ['项目文档', '交付说明', '交接清单'],
+      ['需求与验收负责人', '交付协调负责人'],
+      ['需求与验收负责人']
     )
   );
+
+  const finalRoles = roles.map((role) => ({
+    ...role,
+    dependsOn: role.dependsOn.filter((name) => name !== role.name && roleIndex.has(name)),
+    notifies: role.notifies.filter((name) => name !== role.name && roleIndex.has(name)),
+  }));
+  const finalRoleIndex = new Map(finalRoles.map((role) => [role.name, role]));
+
+  const demandRole = finalRoleIndex.get('需求与验收负责人') ?? finalRoles[0];
+  const deliveryRole = finalRoleIndex.get('交付协调负责人') ?? finalRoles[0];
+  const docsRole = finalRoleIndex.get('文档与交接负责人') ?? finalRoles[0];
+  const qualityRole = finalRoleIndex.get('测试与质量负责人');
+  const primaryDeliveryRole =
+    finalRoles.find(
+      (role) =>
+        role.name !== '需求与验收负责人' &&
+        role.name !== '交付协调负责人' &&
+        role.name !== '文档与交接负责人'
+    ) ?? deliveryRole;
 
   const workflow: WorkflowStep[] = [
     {
       id: 'clarify',
       name: '需求澄清',
       description: '确认目标、边界、优先级和验收标准。',
-      ownerRoleId: roleIndex.get('产品负责人')?.id ?? roles[0].id,
+      ownerRoleId: demandRole.id,
     },
     {
-      id: 'architecture',
-      name: '架构设计',
-      description: '确定模块、接口、数据流和技术约束。',
-      ownerRoleId: roleIndex.get('架构师')?.id ?? roles[0].id,
+      id: 'responsibility',
+      name: '责任与交付设计',
+      description: '从需求识别责任区块，明确角色职责、依赖和交付物。',
+      ownerRoleId: deliveryRole.id,
     },
     {
-      id: 'implementation',
-      name: '协作实现',
-      description: '按角色分工实现功能并保持接口一致。',
-      ownerRoleId: roleIndex.get('后端工程师')?.id ?? roleIndex.get('前端工程师')?.id ?? roles[0].id,
+      id: 'delivery',
+      name: '分角色交付',
+      description: '各角色按自己的职责和依赖关系完成交付物。',
+      ownerRoleId: primaryDeliveryRole.id,
     },
     {
-      id: 'review',
-      name: '评审与测试',
-      description: '交叉评审代码、补充测试并处理缺陷。',
-      ownerRoleId: roleIndex.get('QA 工程师')?.id ?? roles[0].id,
+      id: qualityRole ? 'quality' : 'acceptance',
+      name: qualityRole ? '质量验证' : '集成验收',
+      description: qualityRole
+        ? '执行测试、回归和质量门禁，跟踪并验证缺陷修复。'
+        : '核对交付物是否满足需求并处理集成缺口。',
+      ownerRoleId: qualityRole?.id ?? demandRole.id,
     },
     {
-      id: 'documentation',
-      name: '文档收尾',
-      description: '更新运行说明、接口文档和交付清单。',
-      ownerRoleId: roleIndex.get('文档工程师')?.id ?? roles[0].id,
+      id: 'handoff',
+      name: '文档交接',
+      description: '更新需求、接口、运行说明和交付清单。',
+      ownerRoleId: docsRole.id,
     },
   ];
 
@@ -226,7 +519,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
     generatedBy: 'local',
     createdAt: new Date().toISOString(),
     workflow,
-    agents: roles,
+    agents: finalRoles,
     conventions: DEFAULT_CONVENTIONS,
   };
 }

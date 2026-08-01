@@ -33,14 +33,14 @@ export class TeamGenerationService {
     if (input.useLlm) {
       const clientSettings = this.settingsService.getClientSettings();
       if (!clientSettings.apiKey) {
-        warnings.push('未配置 API Key，本次使用本地模板生成。');
+        warnings.push('未配置 API Key，本次使用需求驱动生成。');
       } else {
         llmAttempted = true;
         try {
           team = await this.llmClient.generateTeam(clientSettings, input);
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
-          warnings.push(`LLM 生成失败，已回退到本地模板：${message}`);
+          warnings.push(`LLM 生成失败，已回退到需求驱动生成：${message}`);
           this.log.warn('LLM generation failed, falling back to local template', {
             error: message,
           });

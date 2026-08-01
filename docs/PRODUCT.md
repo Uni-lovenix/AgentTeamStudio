@@ -15,12 +15,13 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 - Accept Chinese or English requirement text.
 - Support optional tech stack hints.
 - Validate that requirement text is at least 10 characters.
-- Detect project types including web, backend, mobile, desktop, AI/data, and CLI.
+- Extract goals, users, core business processes, constraints, and the responsibility areas needed to complete the requirement.
 
 ### Local Team Generation
-- Generate a default team from keywords and templates.
-- Base team includes product, architecture, development, QA, and documentation roles.
-- Add backend, frontend/client, and AI/data roles based on detected stack.
+- Generate roles from the requirement instead of splitting the work by frontend, backend, or other implementation functions.
+- Always include requirement acceptance, delivery coordination, and documentation/handoff responsibilities.
+- Add requirement-specific roles such as account/permissions, transaction/payment, content/review, messaging, data/reporting, AI/agent, security/compliance, performance, integration/migration, and other responsibility areas when the requirement mentions them.
+- Every role gets a mission, concrete responsibilities, skills, tools, deliverables, dependencies, and notifications derived from the requirement.
 - Generate a collaboration workflow and engineering conventions.
 
 ### Optional LLM Generation
@@ -28,7 +29,8 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 - MiniMax Anthropic-compatible endpoints are supported with protocol set to `anthropic`.
 - API key stored locally with Electron `safeStorage`.
 - LLM output is schema-normalized before display.
-- LLM failure falls back to local generation with a visible warning.
+- The LLM prompt requires responsibility-driven roles with concrete responsibilities and explicitly discourages frontend/backend function-split roles.
+- LLM failure falls back to requirement-driven local generation with a visible warning.
 
 ### Team Preview and Editing
 - Rename and remove roles.

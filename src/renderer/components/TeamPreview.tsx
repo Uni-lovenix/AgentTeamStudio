@@ -79,7 +79,7 @@ export function TeamPreview({ team, onChange }: TeamPreviewProps) {
         <span className="eyebrow">团队预览</span>
         <h2>{team.projectName}</h2>
         <span className={`source-badge ${team.generatedBy}`}>
-          {team.generatedBy === 'llm' ? 'LLM' : '本地模板'}
+          {team.generatedBy === 'llm' ? 'LLM' : '需求驱动'}
         </span>
       </div>
 

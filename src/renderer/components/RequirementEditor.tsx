@@ -53,7 +53,7 @@ export function RequirementEditor({
           />
         </label>
         <label className="field field-wide">
-          <span>功能/需求描述</span>
+          <span>需求描述</span>
           <textarea
             value={requirement}
             onChange={(event) => onChangeRequirement(event.target.value)}

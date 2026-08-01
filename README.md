@@ -37,7 +37,7 @@ shasum -a 256 AgentTeamStudio-0.1.0-mac-arm64.zip AgentTeamStudio-0.1.0-win-x64.
 ## 功能
 
 - 输入项目名称、需求描述和技术栈提示。
-- 本地模板自动识别 web、backend、mobile、desktop、AI/data、CLI 等项目类型。
+- 本地分析从需求中识别必须完成的责任区块，为每个角色生成使命和具体职责，而不是按前端、后端等实现功能拆分。
 - 可选 OpenAI 兼容或 Anthropic/MiniMax 兼容 LLM 生成更贴合需求的团队配置。
 - 编辑角色名称、使命、职责、技能、工具、交付物、依赖和通知关系。
 - 编辑协作流程和分支、提交、PR、测试、文档约定。
@@ -79,7 +79,7 @@ bash init.sh
 
 1. 点击“新建项目”，输入项目名称。
 2. 粘贴至少 10 个字符的需求描述，可补充技术栈提示。
-3. 点击“生成团队”，应用会先使用本地模板生成。
+3. 点击“生成团队”，应用会先使用需求驱动生成。
 4. 如需 LLM 生成，在设置中启用 LLM，选择 OpenAI 兼容或 Anthropic 兼容协议，并配置 Base URL、模型和 API Key。
 5. 在团队预览中调整角色、流程和约定。
 6. 点击“选择项目目录”，指定一个已有的项目目录。
@@ -102,7 +102,7 @@ MiniMax 配置示例：
 - OpenAI 兼容：`Base URL` 填 `https://api.minimaxi.com/v1`，协议选 `OpenAI 兼容`，模型填如 `MiniMax-M2.7-highspeed`。
 - Anthropic 兼容：`Base URL` 填 `https://api.minimaxi.com/anthropic`，协议选 `Anthropic 兼容`，模型填如 `MiniMax-M2.7-highspeed`。
 
-LLM 返回结果会经过结构校验。如果请求失败、超时或返回格式无效，应用会自动回退到本地模板，并在界面中显示警告。
+LLM 返回结果会经过结构校验。如果请求失败、超时或返回格式无效，应用会自动回退到需求驱动生成，并在界面中显示警告。
 
 ## 生成文件示例
 
@@ -111,14 +111,14 @@ LLM 返回结果会经过结构校验。如果请求失败、超时或返回格�
 ```json
 {
   "id": "role-id",
-  "name": "后端工程师",
-  "mission": "实现服务端能力、数据存储、API 契约和业务逻辑。",
-  "responsibilities": ["实现业务 API", "设计数据模型"],
-  "skills": ["后端开发", "数据库设计"],
-  "tools": ["编辑器", "API 调试工具"],
-  "deliverables": ["可运行服务", "API 文档"],
-  "dependsOn": ["架构师"],
-  "notifies": ["QA 工程师"]
+  "name": "账户与权限负责人",
+  "mission": "保证身份、账户、权限和数据可见范围完整可审计。",
+  "responsibilities": ["设计注册、登录、认证、会话和找回流程", "定义用户、角色、权限与数据隔离规则"],
+  "skills": ["身份认证", "权限模型", "审计"],
+  "tools": ["权限矩阵", "认证方案", "审计清单"],
+  "deliverables": ["账户流程说明", "权限矩阵", "审计清单"],
+  "dependsOn": ["需求与验收负责人"],
+  "notifies": ["交付协调负责人"]
 }
 ```
 
