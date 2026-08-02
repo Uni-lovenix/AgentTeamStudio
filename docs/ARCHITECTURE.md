@@ -78,9 +78,10 @@ React 18 application bundled by Vite:
 2. Renderer calls `window.agentTeamStudio.team.generate`.
 3. `TeamGenerationService` validates the requirement and calls `buildTeamConfig`.
 4. `RequirementAnalyzer` scans the requirement and tech hints to identify responsibility areas that must be completed.
-5. Each responsibility area becomes a role with a mission, concrete responsibilities, skills, tools, and deliverables.
-6. The generated `TeamConfig` includes a `generationLog` that records the decision steps.
-7. Renderer saves the result as a local `ProjectDraft` and renders the log in `GenerationLog`.
+5. Planner and Evaluator roles are always added. Each responsibility area becomes a Developer role with a mission, concrete responsibilities, skills, tools, and deliverables.
+6. The workflow always begins with a sprint protocol created by Planner, proceeds through developer implementation, and ends with Evaluator validation/feedback.
+7. The generated `TeamConfig` includes a `generationLog` that records the decision steps.
+8. Renderer saves the result as a local `ProjectDraft` and renders the log in `GenerationLog`.
 
 ### Optional LLM Generation
 
@@ -97,7 +98,7 @@ React 18 application bundled by Vite:
 3. User confirms overwrite when `AGENTS.team.md` or `agents.json` already exist.
 4. Renderer calls `team.write`.
 5. `ProjectWriter` writes `AGENTS.team.md` as the team-level router, `agents.json`, and one Markdown file per agent under `agents/` atomically with temp-file rename.
-6. For each existing rule file (`AGENTS.md`, `CLAUDE.md`), it appends a pointer to `AGENTS.team.md` without overwriting existing rules.
+6. For each existing rule file (`AGENTS.md`, `CLAUDE.md`), it appends a pointer to `AGENTS.team.md` plus the sprint-protocol collaboration flow without overwriting existing rules.
 7. Result is persisted on the local draft and shown in the status bar.
 
 ## IPC Channels
@@ -111,7 +112,7 @@ React 18 application bundled by Vite:
 | `projects:delete` | R -> M | Delete a draft |
 | `team:generate` | R -> M | Generate team config |
 | `team:inspect` | R -> M | Inspect target directory files |
-| `team:write` | R -> M | Write `AGENTS.team.md`, `agents.json`, and `agents/*.md`; append pointer to existing `AGENTS.md` / `CLAUDE.md` |
+| `team:write` | R -> M | Write `AGENTS.team.md`, `agents.json`, and `agents/*.md`; append pointer and sprint collaboration flow to existing `AGENTS.md` / `CLAUDE.md` |
 | `dialog:select-directory` | R -> M | Open native directory picker |
 | `settings:get` | R -> M | Get LLM settings snapshot |
 | `settings:save` | R -> M | Save LLM settings |
@@ -134,6 +135,6 @@ Exported project data:
 AGENTS.team.md   # team-level rules and agent routing index
 agents.json      # schema version 1 machine-readable team config
 agents/          # one Markdown file per agent
-AGENTS.md        # existing Codex rules, only receives a pointer when present
-CLAUDE.md        # existing Claude rules, only receives a pointer when present
+AGENTS.md        # existing Codex rules, only receives a pointer and collaboration flow when present
+CLAUDE.md        # existing Claude rules, only receives a pointer and collaboration flow when present
 ```

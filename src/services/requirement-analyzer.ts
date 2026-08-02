@@ -68,7 +68,7 @@ interface ConcernRoleSpec {
 const CONCERN_ROLES: ConcernRoleSpec[] = [
   {
     key: 'account',
-    name: '账户与权限负责人',
+    name: '账户与权限开发者',
     mission: '保证身份、账户、权限和数据可见范围完整可审计。',
     responsibilities: [
       '设计注册、登录、认证、会话和找回流程',
@@ -78,13 +78,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['身份认证', '权限模型', '审计'],
     tools: ['权限矩阵', '认证方案', '审计清单'],
     deliverables: ['账户流程说明', '权限矩阵', '审计清单'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /登录|注册|认证|身份|账号|账户|用户|会员|权限|授权|oauth|sso|saml/i,
   },
   {
     key: 'transaction',
-    name: '交易与支付负责人',
+    name: '交易与支付开发者',
     mission: '保证交易、支付、结算和账务数据在完整生命周期内一致可追踪。',
     responsibilities: [
       '设计订单、支付、退款、结算等状态与流程',
@@ -94,13 +94,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['交易流程设计', '对账', '异常处理'],
     tools: ['状态机', '支付接口', '对账工具'],
     deliverables: ['交易流程说明', '对账方案', '差错清单'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /订单|下单|支付|退款|结算|账单|交易|库存|购物车|优惠|价格|发票|对账/i,
   },
   {
     key: 'content',
-    name: '内容与审核负责人',
+    name: '内容与审核开发者',
     mission: '保证内容的发布、分类、审核和展示符合产品规则。',
     responsibilities: [
       '明确内容类型、发布流程、分类和标签规则',
@@ -110,13 +110,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['内容治理', '审核规则', '社区运营'],
     tools: ['内容管理后台', '审核队列'],
     deliverables: ['内容规则', '审核流程', '内容运营方案'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /内容|文章|帖子|社区|评论|审核|发布|分类|标签|ugc|feed|短视频|视频|直播/i,
   },
   {
     key: 'messaging',
-    name: '消息与通知负责人',
+    name: '消息与通知开发者',
     mission: '保证关键消息按用户偏好及时、可靠地触达用户。',
     responsibilities: [
       '梳理消息类型、触发时机和接收对象',
@@ -126,13 +126,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['消息渠道', '触达策略', '失败重试'],
     tools: ['消息模板', '推送/邮件服务'],
     deliverables: ['消息触达方案', '模板清单', '失败处理方案'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /消息|通知|推送|短信|邮件|站内信|提醒|订阅|公告/i,
   },
   {
     key: 'data',
-    name: '数据与报表负责人',
+    name: '数据与报表开发者',
     mission: '让项目所需的数据采集、统计、分析和报表可解释可验证。',
     responsibilities: [
       '梳理关键指标、数据口径和报表需求',
@@ -142,13 +142,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['数据分析', '指标体系', '数据质量'],
     tools: ['数据看板', '报表工具'],
     deliverables: ['指标定义', '数据流程', '报表样例'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /数据|报表|统计|分析|看板|指标|仪表盘|etl|pipeline/i,
   },
   {
     key: 'ai',
-    name: 'AI 与智能体负责人',
+    name: 'AI 与智能体开发者',
     mission: '把模型或智能体能力转化为符合需求、可评估、可兜底的业务能力。',
     responsibilities: [
       '明确模型或智能体要完成的任务、输入输出和约束',
@@ -158,13 +158,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['LLM 应用', 'Agent 工作流', '评测'],
     tools: ['Prompt 调试', '评测集', '观测工具'],
     deliverables: ['AI 方案', '评测报告', '兜底策略'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /ai|llm|大模型|智能体|agent|模型|推理|prompt|rag|提示词|生成式/i,
   },
   {
     key: 'search',
-    name: '搜索与推荐负责人',
+    name: '搜索与推荐开发者',
     mission: '保证用户能按相关规则快速找到或获得正确内容。',
     responsibilities: [
       '明确搜索或推荐的目标、数据范围和排序规则',
@@ -174,13 +174,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['搜索设计', '相关性排序', '检索评测'],
     tools: ['索引方案', '搜索调试工具'],
     deliverables: ['搜索或推荐方案', '评测样例', '兜底结果'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /搜索|检索|索引|查询|过滤|排序|推荐|关键词|全文/i,
   },
   {
     key: 'files',
-    name: '文件与同步负责人',
+    name: '文件与同步开发者',
     mission: '保证文件、导入导出和同步过程完整、安全、可恢复。',
     responsibilities: [
       '设计文件上传、下载、格式转换和存储规则',
@@ -190,13 +190,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['文件存储', '同步策略', '容灾'],
     tools: ['对象存储', '同步协议', '备份方案'],
     deliverables: ['文件流程说明', '同步冲突方案', '备份恢复清单'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /文件|上传|下载|附件|导入|导出|存储|同步|备份|恢复|文档库/i,
   },
   {
     key: 'security',
-    name: '安全与合规负责人',
+    name: '安全与合规开发者',
     mission: '把安全、隐私和合规要求落到功能与运维的每个环节。',
     responsibilities: [
       '识别敏感数据、风险入口和合规要求',
@@ -206,13 +206,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['安全设计', '隐私合规', '风险评估'],
     tools: ['威胁建模', '安全扫描', '审计日志'],
     deliverables: ['安全清单', '合规说明', '应急预案'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /安全|合规|隐私|审计|加密|风险|风控|防刷|防作弊|gdpr|数据保护|敏感/i,
   },
   {
     key: 'performance',
-    name: '性能与可用性负责人',
+    name: '性能与可用性开发者',
     mission: '保证关键路径的响应、容量和可用性满足目标。',
     responsibilities: [
       '定义性能目标、压测场景和容量基线',
@@ -222,13 +222,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['性能工程', '容量规划', '可观测性'],
     tools: ['压测工具', '监控告警', '链路追踪'],
     deliverables: ['性能目标', '压测报告', '应急预案'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /性能|并发|高可用|缓存|限流|延迟|监控|告警|可观测|稳定性|容灾|扩展/i,
   },
   {
     key: 'integration',
-    name: '集成与迁移负责人',
+    name: '集成与迁移开发者',
     mission: '让外部系统、历史数据和新增能力平滑衔接。',
     responsibilities: [
       '梳理需要对接或迁移的系统、数据和协议',
@@ -238,13 +238,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['系统集成', '迁移设计', '兼容性'],
     tools: ['API 文档', '迁移工具', '校验脚本'],
     deliverables: ['集成方案', '迁移计划', '回滚清单'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /集成|对接|第三方|接入|迁移|兼容|webhook|插件|历史数据/i,
   },
   {
     key: 'multi-platform',
-    name: '多端体验负责人',
+    name: '多端体验开发者',
     mission: '保证各端在交互、状态和数据一致性上都能完成核心需求。',
     responsibilities: [
       '梳理目标端与设备差异，确定体验优先级',
@@ -254,13 +254,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['多端设计', '交互一致性', '端到端验收'],
     tools: ['设计稿', '设备清单', '端到端场景'],
     deliverables: ['多端体验方案', '平台差异清单', '验收场景'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /移动|手机|ios|android|桌面|electron|windows|mac|跨平台|客户端|h5|小程序/i,
   },
   {
     key: 'cli',
-    name: '命令行交互负责人',
+    name: '命令行交互开发者',
     mission: '让命令、参数、输出和错误提示对使用者清晰可靠。',
     responsibilities: [
       '定义命令、参数、子命令和帮助信息',
@@ -270,13 +270,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['CLI 设计', '输入校验', '脚本化'],
     tools: ['终端调试', '命令行规范', '自动化脚本'],
     deliverables: ['命令规范', '帮助文档', '错误码清单'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /命令行|cli|终端|terminal|脚本工具|批量任务/i,
   },
   {
     key: 'workflow',
-    name: '任务与工作流负责人',
+    name: '任务与工作流开发者',
     mission: '把需求中的任务、审批、协作和进度管理做得可追踪可完成。',
     responsibilities: [
       '设计任务类型、状态、优先级、负责人和截止时间',
@@ -286,13 +286,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['工作流设计', '任务建模', '进度管理'],
     tools: ['任务看板', '状态机', '工作流引擎'],
     deliverables: ['工作流说明', '任务模型', '进度统计方案'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /任务|工作流|审批|进度|项目管理|协作|待办|todo|kanban|里程碑/i,
   },
   {
     key: 'scheduling',
-    name: '定时与异步任务负责人',
+    name: '定时与异步任务开发者',
     mission: '保证定时、队列和异步任务按规则可靠执行并可观测。',
     responsibilities: [
       '设计定时任务、调度计划、队列和并发约束',
@@ -302,13 +302,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['任务调度', '队列设计', '失败恢复'],
     tools: ['调度器', '消息队列', '任务监控'],
     deliverables: ['调度方案', '重试策略', '任务观测清单'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /定时|调度|任务计划|cron|队列|异步|批处理/i,
   },
   {
     key: 'quality',
-    name: '测试与质量负责人',
+    name: '测试与质量开发者',
     mission: '把测试、回归和质量门禁组织成可执行的交付保障。',
     responsibilities: [
       '定义测试范围、优先级、环境与数据准备',
@@ -318,13 +318,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['测试设计', '自动化测试', '质量门禁'],
     tools: ['测试框架', 'CI/CD', '缺陷管理'],
     deliverables: ['测试计划', '测试报告', '缺陷清单'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /测试|质检|质量|验收|回归|缺陷|覆盖率|ci|持续集成/i,
   },
   {
     key: 'i18n',
-    name: '国际化与本地化负责人',
+    name: '国际化与本地化开发者',
     mission: '保证语言、地区、时区、货币和格式规则在各市场正确。',
     responsibilities: [
       '定义支持语言、地区和本地化内容范围',
@@ -334,13 +334,13 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['国际化设计', '本地化流程', '格式规范'],
     tools: ['文案管理', '翻译流程', '格式测试'],
     deliverables: ['国际化规范', '本地化清单', '回退方案'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /国际化|i18n|多语言|本地化|时区|货币/i,
   },
   {
     key: 'accessibility',
-    name: '无障碍与可用性负责人',
+    name: '无障碍与可用性开发者',
     mission: '保证界面信息和关键操作对更多用户可理解、可操作。',
     responsibilities: [
       '识别无障碍目标用户和关键操作路径',
@@ -350,8 +350,8 @@ const CONCERN_ROLES: ConcernRoleSpec[] = [
     skills: ['无障碍设计', '可访问性测试', '响应式设计'],
     tools: ['读屏工具', '无障碍审计', '键盘测试'],
     deliverables: ['无障碍规范', '检查清单', '修复记录'],
-    dependsOn: ['需求与验收负责人'],
-    notifies: ['交付协调负责人'],
+    dependsOn: ['规划者'],
+    notifies: ['评估者'],
     pattern: /无障碍|可访问性|accessibility|a11y|响应式|键盘操作|屏幕阅读/i,
   },
 ];
@@ -406,48 +406,50 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
 
   addRole(
     createRole(
-      '需求与验收负责人',
-      '把原始需求转成目标、边界、优先级和验收标准，并最终核对交付是否满足需求。',
+      '规划者',
+      '把需求拆解为可执行任务，制定方案、流程和冲刺协议，并协调开发者完成交付。',
       [
-        '把需求整理为目标、边界、优先级和验收标准',
-        '确认每个角色交付物如何满足对应需求',
-        '组织最终验收并记录未满足项',
+        '把需求或任务拆解为可执行、可验收的开发任务',
+        '制定技术方案、交付顺序、依赖关系和流程协调规则',
+        '每项任务开始前制定冲刺协议，明确目标、范围、完成标准和验收方式',
+        '协调开发者、评估者和文档交接流程，处理阻塞与变更',
       ],
-      ['需求澄清', '验收标准', '结果判断'],
-      ['需求文档', '验收清单'],
-      ['需求说明', '验收清单'],
+      ['任务拆解', '方案设计', '流程协调'],
+      ['冲刺协议模板', '任务看板', '依赖清单'],
+      ['任务分解', '冲刺协议', '流程协调记录'],
       [],
-      ['交付协调负责人', '文档与交接负责人']
+      ['评估者', '开发者', '文档与交接负责人']
     )
   );
   generationLog.push({
     step: '基础角色',
-    detail: '每个项目都需要先明确验收标准，所以生成“需求与验收负责人”。',
-    role: '需求与验收负责人',
-    outcome: '负责需求目标、边界、优先级和验收标准',
+    detail: '任务开始前必须有人负责拆解任务、制定方案和流程，所以生成“规划者”。',
+    role: '规划者',
+    outcome: '负责任务分解、方案与流程协调，并制定冲刺协议',
   });
 
   addRole(
     createRole(
-      '交付协调负责人',
-      '识别完成需求必须覆盖的责任区块，并保证各角色交付能集成成最终结果。',
+      '评估者',
+      '依据冲刺协议评估开发者的交付结果，发现问题反馈给开发者修改，并确认闭环。',
       [
-        '识别需求中的责任区块与依赖关系',
-        '编排角色交付顺序、集成检查和缺口处理',
-        '汇总风险、交付状态和最终结果',
+        '对照冲刺协议检查每个任务的目标、完成标准和交付物',
+        '评估开发者生成的结果，记录问题并反馈给对应开发者',
+        '复核修复结果，确认通过后进入下一任务或最终验收',
+        '汇总评估报告、风险记录和未满足项',
       ],
-      ['责任拆解', '依赖管理', '集成协调'],
-      ['交付计划', '任务看板'],
-      ['交付计划', '集成清单', '风险记录'],
-      ['需求与验收负责人'],
-      ['需求与验收负责人', '文档与交接负责人']
+      ['验收标准', '结果评估', '问题闭环'],
+      ['冲刺协议', '验收清单', '问题记录'],
+      ['评估报告', '问题清单', '修复确认'],
+      ['规划者'],
+      ['规划者', '开发者', '文档与交接负责人']
     )
   );
   generationLog.push({
     step: '基础角色',
-    detail: '多角色协作前必须明确交付顺序和依赖，所以生成“交付协调负责人”。',
-    role: '交付协调负责人',
-    outcome: '负责识别责任区块、编排依赖并汇总交付',
+    detail: '开发者交付后必须有人按统一标准校验并反馈，所以生成“评估者”。',
+    role: '评估者',
+    outcome: '负责按冲刺协议校验结果、反馈问题并确认修复',
   });
 
   for (const spec of matchedSpecs) {
@@ -467,9 +469,11 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
       role: spec.name,
       outcome: `职责：${spec.responsibilities.join('；')}`,
     });
-    const responsibilities = phrase
-      ? [...spec.responsibilities, `围绕需求中的“${phrase}”落实可验收交付。`]
-      : spec.responsibilities;
+    const responsibilities = [
+      ...spec.responsibilities,
+      phrase ? `围绕需求中的“${phrase}”落实可验收交付。` : '按冲刺协议完成本责任区块的开发、测试与交付物。',
+      '根据评估者反馈修改问题，直到通过校验。',
+    ];
     addRole(
       createRole(
         spec.name,
@@ -484,6 +488,31 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
     );
   }
 
+  if (!roles.some((role) => role.name.includes('开发者'))) {
+    addRole(
+      createRole(
+        '开发者',
+        '按规划者制定的冲刺协议完成开发、测试和交付物，并根据评估者反馈修复问题。',
+        [
+          '阅读并执行冲刺协议中的任务目标、范围和完成标准',
+          '完成本任务实现、测试与必要文档',
+          '根据评估者反馈修改问题，直到通过校验',
+        ],
+        ['需求实现', '代码质量', '问题修复'],
+        ['开发环境', '测试工具', '冲刺协议'],
+        ['实现代码', '测试结果', '变更说明'],
+        ['规划者'],
+        ['评估者']
+      )
+    );
+    generationLog.push({
+      step: '基础角色',
+      detail: '当前需求未命中具体责任区块，为保证有执行者所以生成“开发者”。',
+      role: '开发者',
+      outcome: '负责按冲刺协议开发并根据评估者反馈修改',
+    });
+  }
+
   addRole(
     createRole(
       '文档与交接负责人',
@@ -496,8 +525,8 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
       ['技术写作', '文档结构设计', '交付交接'],
       ['Markdown', '知识库工具'],
       ['项目文档', '交付说明', '交接清单'],
-      ['需求与验收负责人', '交付协调负责人'],
-      ['需求与验收负责人']
+      ['规划者', '评估者'],
+      ['规划者']
     )
   );
   generationLog.push({
@@ -515,44 +544,36 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
   const finalRoleIndex = new Map(finalRoles.map((role) => [role.name, role]));
   const finalRoleById = new Map(finalRoles.map((role) => [role.id, role]));
 
-  const demandRole = finalRoleIndex.get('需求与验收负责人') ?? finalRoles[0];
-  const deliveryRole = finalRoleIndex.get('交付协调负责人') ?? finalRoles[0];
+  const plannerRole = finalRoleIndex.get('规划者') ?? finalRoles[0];
+  const evaluatorRole = finalRoleIndex.get('评估者') ?? finalRoles[0];
   const docsRole = finalRoleIndex.get('文档与交接负责人') ?? finalRoles[0];
-  const qualityRole = finalRoleIndex.get('测试与质量负责人');
-  const primaryDeliveryRole =
-    finalRoles.find(
-      (role) =>
-        role.name !== '需求与验收负责人' &&
-        role.name !== '交付协调负责人' &&
-        role.name !== '文档与交接负责人'
-    ) ?? deliveryRole;
+  const primaryDeveloperRole =
+    finalRoles.find((role) => role.name.includes('开发者')) ?? finalRoles[0];
 
   const workflow: WorkflowStep[] = [
     {
-      id: 'clarify',
-      name: '需求澄清',
-      description: '确认目标、边界、优先级和验收标准。',
-      ownerRoleId: demandRole.id,
+      id: 'sprint-protocol',
+      name: '制定冲刺协议',
+      description: '规划者在每项任务开始前制定冲刺协议，明确任务拆解、目标、范围、完成标准、验收方式和交付物。',
+      ownerRoleId: plannerRole.id,
     },
     {
-      id: 'responsibility',
-      name: '责任与交付设计',
-      description: '从需求识别责任区块，明确角色职责、依赖和交付物。',
-      ownerRoleId: deliveryRole.id,
+      id: 'development',
+      name: '按协议开发',
+      description: '各开发者按规划者制定的冲刺协议完成实现、测试和交付物。',
+      ownerRoleId: primaryDeveloperRole.id,
     },
     {
-      id: 'delivery',
-      name: '分角色交付',
-      description: '各角色按自己的职责和依赖关系完成交付物。',
-      ownerRoleId: primaryDeliveryRole.id,
+      id: 'evaluation',
+      name: '评估与反馈',
+      description: '评估者按冲刺协议校验开发者交付；发现问题反馈给对应开发者修改，通过后进入下一任务。',
+      ownerRoleId: evaluatorRole.id,
     },
     {
-      id: qualityRole ? 'quality' : 'acceptance',
-      name: qualityRole ? '质量验证' : '集成验收',
-      description: qualityRole
-        ? '执行测试、回归和质量门禁，跟踪并验证缺陷修复。'
-        : '核对交付物是否满足需求并处理集成缺口。',
-      ownerRoleId: qualityRole?.id ?? demandRole.id,
+      id: 'acceptance',
+      name: '集成验收',
+      description: '评估者核对全部任务是否按冲刺协议完成，并汇总交付状态与未满足项。',
+      ownerRoleId: evaluatorRole.id,
     },
     {
       id: 'handoff',
@@ -563,7 +584,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
   ];
   generationLog.push({
     step: '协作流程',
-    detail: `根据角色负责人生成协作流程：${workflow.map((step) => step.name).join(' → ')}。`,
+    detail: `根据角色生成协作流程：${workflow.map((step) => step.name).join(' → ')}。`,
     evidence: `共 ${workflow.length} 个步骤`,
     outcome: workflow
       .map(
@@ -610,6 +631,98 @@ function normalizeRole(raw: unknown, index: number): AgentRole {
   };
 }
 
+function dedupeAgentIds(agents: AgentRole[]): AgentRole[] {
+  const usedIds = new Set<string>();
+  return agents.map((agent, index) => {
+    let id = agent.id;
+    while (usedIds.has(id)) {
+      id = `${agent.id}-${index + 1}`;
+    }
+    usedIds.add(id);
+    return { ...agent, id };
+  });
+}
+
+function fallbackRole(fallback: TeamConfig, name: string): AgentRole {
+  return fallback.agents.find((agent) => agent.name === name) ?? fallback.agents[0];
+}
+
+function enforceMandatoryRoles(
+  agents: AgentRole[],
+  fallback: TeamConfig
+): { agents: AgentRole[]; addedRoleNames: string[] } {
+  const result = [...agents];
+  const addedRoleNames: string[] = [];
+  const addIfMissing = (name: string): void => {
+    if (result.some((agent) => agent.name === name)) return;
+    result.unshift(fallbackRole(fallback, name));
+    addedRoleNames.push(name);
+  };
+
+  addIfMissing('规划者');
+  addIfMissing('评估者');
+  if (!result.some((agent) => agent.name.includes('开发者'))) {
+    const developer =
+      fallback.agents.find((agent) => agent.name.includes('开发者')) ?? fallback.agents[0];
+    result.push(developer);
+    addedRoleNames.push(developer.name);
+  }
+
+  return { agents: result, addedRoleNames };
+}
+
+function ensureSprintWorkflow(steps: WorkflowStep[], agents: AgentRole[]): WorkflowStep[] {
+  const roleIdByName = (name: string): string =>
+    agents.find((agent) => agent.name === name)?.id ?? agents[0]?.id ?? '';
+  const plannerId = roleIdByName('规划者');
+  const evaluatorId = roleIdByName('评估者');
+  const developerId =
+    agents.find((agent) => agent.name.includes('开发者'))?.id ?? agents[0]?.id ?? '';
+
+  const result = [...steps];
+  if (!result.some((step) => step.name.includes('冲刺') || step.name.includes('协议'))) {
+    result.unshift({
+      id: 'sprint-protocol',
+      name: '制定冲刺协议',
+      description: '规划者在每项任务开始前制定冲刺协议，明确任务拆解、目标、范围、完成标准、验收方式和交付物。',
+      ownerRoleId: plannerId,
+    });
+  }
+  if (!result.some((step) => step.name.includes('开发'))) {
+    const sprintIndex = result.findIndex(
+      (step) => step.name.includes('冲刺') || step.name.includes('协议')
+    );
+    result.splice(sprintIndex >= 0 ? sprintIndex + 1 : 1, 0, {
+      id: 'development',
+      name: '按协议开发',
+      description: '各开发者按规划者制定的冲刺协议完成实现、测试和交付物。',
+      ownerRoleId: developerId,
+    });
+  }
+  if (
+    !result.some(
+      (step) => step.name.includes('评估') || step.name.includes('校验')
+    )
+  ) {
+    result.push({
+      id: 'evaluation',
+      name: '评估与反馈',
+      description: '评估者按冲刺协议校验开发者交付；发现问题反馈给对应开发者修改，通过后进入下一任务。',
+      ownerRoleId: evaluatorId,
+    });
+  }
+
+  return result
+    .map((step) => ({
+      ...step,
+      ownerRoleId:
+        agents.some((agent) => agent.id === step.ownerRoleId)
+          ? step.ownerRoleId
+          : agents[0]?.id ?? '',
+    }))
+    .slice(0, 10);
+}
+
 export function normalizeTeamConfig(
   raw: unknown,
   context: RequirementAnalysisContext
@@ -619,21 +732,14 @@ export function normalizeTeamConfig(
   const agents = Array.isArray(value.agents)
     ? value.agents.map(normalizeRole).slice(0, 12)
     : fallback.agents;
-  const usedIds = new Set<string>();
-  const dedupedAgents = agents.map((agent, index) => {
-    let id = agent.id;
-    while (usedIds.has(id)) {
-      id = `${agent.id}-${index + 1}`;
-    }
-    usedIds.add(id);
-    return { ...agent, id };
-  });
+  const enforced = enforceMandatoryRoles(agents, fallback);
+  const dedupedAgents = dedupeAgentIds(enforced.agents);
   const rawWorkflow = Array.isArray(value.workflow) ? value.workflow : fallback.workflow;
   const generationLog: GenerationLogEntry[] = [];
   if (Array.isArray(value.agents) && value.agents.length > 0) {
     generationLog.push({
       step: 'LLM 解析',
-      detail: `LLM 返回 ${value.agents.length} 个角色，已校验并去重。`,
+      detail: `LLM 返回 ${value.agents.length} 个角色，已校验、去重并补齐必需角色。`,
       evidence: dedupedAgents.map((agent) => agent.name).join('、'),
       outcome: `保留 ${dedupedAgents.length} 个角色`,
     });
@@ -645,13 +751,22 @@ export function normalizeTeamConfig(
       outcome: `回退角色：${fallback.agents.map((agent) => agent.name).join('、')}`,
     });
   }
+  if (enforced.addedRoleNames.length > 0) {
+    generationLog.push({
+      step: '强制角色',
+      detail: `LLM 结果缺少必需协作角色，已补充 ${enforced.addedRoleNames.join('、')}。`,
+      evidence: enforced.addedRoleNames.join('、'),
+      outcome: `最终角色：${dedupedAgents.map((agent) => agent.name).join('、')}`,
+    });
+  }
   generationLog.push({
     step: '结构校验',
     detail: '缺失字段已补齐，协作流程和工程约定已标准化。',
     evidence: '技能、工具、交付物、约定等字段',
     outcome: 'TeamConfig 已标准化',
   });
-  const workflow: WorkflowStep[] = rawWorkflow
+  const workflow: WorkflowStep[] = ensureSprintWorkflow(
+    rawWorkflow
     .map((step, index) => {
       const item = (step ?? {}) as Record<string, unknown>;
       return {
@@ -661,7 +776,9 @@ export function normalizeTeamConfig(
         ownerRoleId: typeof item.ownerRoleId === 'string' ? item.ownerRoleId : dedupedAgents[0]?.id ?? '',
       };
     })
-    .slice(0, 10);
+    .slice(0, 8),
+    dedupedAgents
+  );
   const rawConventions = (value.conventions ?? {}) as Record<string, unknown>;
 
   return {

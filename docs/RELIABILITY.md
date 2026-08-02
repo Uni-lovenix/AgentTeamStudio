@@ -62,6 +62,8 @@ Targets:
 - Average analysis: under 500ms.
 - Average export: under 100ms.
 - Generated agent count: at least 3.
+- Generated team contains Planner, Evaluator, and at least one Developer role.
+- Generated workflow contains a sprint-protocol step and an evaluation/feedback step.
 
 ## Cross-Platform Packaging
 

@@ -15,18 +15,22 @@ describe('requirement-analyzer', () => {
     const names = team.agents.map((agent) => agent.name);
     expect(names).not.toContain('前端工程师');
     expect(names).not.toContain('后端工程师');
-    expect(names).toContain('需求与验收负责人');
-    expect(names).toContain('账户与权限负责人');
-    expect(names).toContain('交易与支付负责人');
-    expect(names).toContain('测试与质量负责人');
+    expect(names).toContain('规划者');
+    expect(names).toContain('评估者');
+    expect(names).toContain('账户与权限开发者');
+    expect(names).toContain('交易与支付开发者');
+    expect(names).toContain('测试与质量开发者');
     expect(names).toContain('文档与交接负责人');
     expect(team.projectName).toBe('Shop');
     expect(team.techStackHints).toContain('React');
-    expect(team.workflow.length).toBeGreaterThanOrEqual(4);
+    expect(team.workflow.length).toBeGreaterThanOrEqual(5);
+    expect(team.workflow.some((step) => step.name.includes('冲刺协议'))).toBe(true);
+    expect(team.workflow.some((step) => step.name.includes('评估与反馈'))).toBe(true);
+    expect(team.agents.filter((agent) => agent.name.includes('开发者')).length).toBeGreaterThan(0);
     expect(team.agents.every((agent) => agent.responsibilities.length > 0)).toBe(true);
     expect(
       team.generationLog?.some(
-        (entry) => entry.step === '角色生成' && entry.detail.includes('账户与权限负责人')
+        (entry) => entry.step === '角色生成' && entry.detail.includes('账户与权限开发者')
       )
     ).toBe(true);
   });
@@ -52,6 +56,19 @@ describe('requirement-analyzer', () => {
     expect(transactionRole?.responsibilities.join('')).toContain('订单');
     expect(securityRole?.responsibilities.join('')).toContain('风险');
     expect(team.agents.some((agent) => agent.name.includes('文件'))).toBe(true);
+  });
+
+  it('always includes planner, evaluator, and at least one developer', () => {
+    const team = buildTeamConfig({
+      requirement: '搭建一个简单的小工具。',
+    });
+
+    const names = team.agents.map((agent) => agent.name);
+    expect(names).toContain('规划者');
+    expect(names).toContain('评估者');
+    expect(names.some((name) => name.includes('开发者'))).toBe(true);
+    expect(team.workflow[0].name).toContain('冲刺协议');
+    expect(team.workflow.some((step) => step.name.includes('评估与反馈'))).toBe(true);
   });
 
   it('normalizes an LLM payload with safe fallbacks', () => {
@@ -81,9 +98,15 @@ describe('requirement-analyzer', () => {
     );
 
     expect(team.generatedBy).toBe('llm');
-    expect(team.agents[0].name).toBe('开发者');
-    expect(team.agents[0].responsibilities).toEqual(['写代码']);
+    const developer = team.agents.find((agent) => agent.name === '开发者');
+    expect(developer?.name).toBe('开发者');
+    expect(developer?.responsibilities).toEqual(['写代码']);
+    expect(team.agents.some((agent) => agent.name === '规划者')).toBe(true);
+    expect(team.agents.some((agent) => agent.name === '评估者')).toBe(true);
+    expect(team.workflow[0].name).toContain('冲刺协议');
+    expect(team.workflow.some((step) => step.name.includes('评估与反馈'))).toBe(true);
     expect(team.conventions.branch).toBeTruthy();
     expect(team.generationLog?.some((entry) => entry.step === 'LLM 解析')).toBe(true);
+    expect(team.generationLog?.some((entry) => entry.step === '强制角色')).toBe(true);
   });
 });

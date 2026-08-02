@@ -2,7 +2,11 @@
 
 ## Project
 
-Cross-platform Electron desktop app that turns a project requirement description into an editable multi-agent team configuration and writes it to an existing project directory as `AGENTS.md` plus `agents.json`.
+Cross-platform Electron desktop app that turns a project requirement description into an editable multi-agent team configuration and writes it to an existing project directory as `AGENTS.team.md` plus `agents.json`.
+
+## Multi-Agent Collaboration Model
+
+Generated teams always include a Planner (`规划者`) and Evaluator (`评估者`), plus one or more responsibility-specific Developer (`开发者`) roles. Every task starts with a sprint protocol: Planner defines it, Developers build against it, Evaluator validates against it, and any issues are sent back to the responsible Developer until accepted.
 
 ## Commands
 

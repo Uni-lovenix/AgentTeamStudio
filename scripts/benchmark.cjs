@@ -38,13 +38,29 @@ fs.rmSync(dir, { recursive: true, force: true });
 const analyzeAvgMs = analyze.durationMs / 5;
 const writeAvgMs = write.durationMs / 10;
 const agentCount = analyze.result[0].agents.length;
-const validatePass = agentCount >= 3;
+const roleNames = analyze.result[0].agents.map((agent) => agent.name);
+const hasPlanner = roleNames.includes('规划者');
+const hasEvaluator = roleNames.includes('评估者');
+const hasDeveloper = roleNames.some((name) => name.includes('开发者'));
+const hasSprintWorkflow = analyze.result[0].workflow.some((step) =>
+  step.name.includes('冲刺')
+);
+const hasEvaluationWorkflow = analyze.result[0].workflow.some((step) =>
+  step.name.includes('评估') || step.name.includes('校验') || step.name.includes('验收')
+);
+const validatePass =
+  agentCount >= 3 &&
+  hasPlanner &&
+  hasEvaluator &&
+  hasDeveloper &&
+  hasSprintWorkflow &&
+  hasEvaluationWorkflow;
 const analyzePass = analyzeAvgMs < 500;
 const writePass = writeAvgMs < 100;
 const passed = [validatePass, analyzePass, writePass].every(Boolean);
 
 console.log(`[analyze] 5 requirements x5 runs: ${analyze.durationMs.toFixed(1)}ms (${analyzeAvgMs.toFixed(1)}ms avg) ${analyzePass ? 'PASS' : 'FAIL'}`);
 console.log(`[write]   10 writes: ${write.durationMs.toFixed(1)}ms (${writeAvgMs.toFixed(1)}ms avg) ${writePass ? 'PASS' : 'FAIL'}`);
-console.log(`[validate] generated agents: ${agentCount} ${validatePass ? 'PASS' : 'FAIL'}`);
+console.log(`[validate] generated agents: ${agentCount}, planner=${hasPlanner}, evaluator=${hasEvaluator}, developer=${hasDeveloper}, sprint=${hasSprintWorkflow}, evaluation=${hasEvaluationWorkflow} ${validatePass ? 'PASS' : 'FAIL'}`);
 console.log(`=== Summary: ${passed ? '3/3 tasks passed' : 'benchmark failed'} ===`);
 process.exit(passed ? 0 : 1);

@@ -5,10 +5,10 @@ import { logger } from './logger';
 
 const SERVICE = 'llm-client';
 const SYSTEM_PROMPT =
-  '你是多智能体团队设计器。先分析需求的目标、用户、核心业务过程和约束，识别完成需求必须承担的责任区块，再据此生成团队。每个 agent 代表一个完整责任角色，包含明确的使命和基于需求的职责。不要按前端、后端、数据库等实现功能拆分角色，也不要把需求功能模块直接当成角色。只输出 JSON，不要输出 Markdown 或解释。JSON 必须包含 schemaVersion、projectName、workflow、agents、conventions 字段。agents 数组中的每个角色必须包含 id、name、mission、responsibilities、skills、tools、deliverables、dependsOn、notifies。';
+  '你是多智能体团队设计器。先分析需求的目标、用户、核心业务过程和约束，识别完成需求必须承担的责任区块，再据此生成团队。团队必须包含“规划者”和“评估者”：规划者负责任务分解、制定方案、流程协调，并在每项任务开始前制定冲刺协议；评估者按冲刺协议校验开发者结果，发现问题反馈给开发者修改。每个责任区块对应一个开发者角色，开发者可以有多个。不要按前端、后端、数据库等实现功能拆分角色，也不要把需求功能模块直接当成角色。只输出 JSON，不要输出 Markdown 或解释。JSON 必须包含 schemaVersion、projectName、workflow、agents、conventions 字段。agents 数组中的每个角色必须包含 id、name、mission、responsibilities、skills、tools、deliverables、dependsOn、notifies。workflow 必须包含制定冲刺协议、按协议开发、评估与反馈步骤。';
 
 function buildUserPrompt(input: GenerateTeamInput): string {
-  return `项目名称：${input.projectName || '未命名项目'}\n技术栈提示：${input.techStackHints || '未指定'}\n需求描述：${input.requirement}\n\n请设计一个适合这个项目的多智能体团队。\n规则：1. 从需求中识别完成项目必须承担的责任区块；2. 每个角色代表一个责任区块，角色名、使命和职责都要与需求对应；3. 为每个角色写具体职责，不要输出空职责；4. 不要只按前端、后端、数据库等实现功能拆分角色。`;
+  return `项目名称：${input.projectName || '未命名项目'}\n技术栈提示：${input.techStackHints || '未指定'}\n需求描述：${input.requirement}\n\n请设计一个适合这个项目的多智能体团队。\n规则：1. 从需求中识别完成项目必须承担的责任区块；2. 团队必须包含“规划者”和“评估者”，每个责任区块对应一个或多个开发者角色；3. 每项任务开始前，规划者制定冲刺协议，开发者按协议开发，评估者按协议校验并反馈给开发者修改；4. 为每个角色写具体职责，不要输出空职责；5. 不要只按前端、后端、数据库等实现功能拆分角色。`;
 }
 
 function endpointFor(settings: LlmClientSettings): string {

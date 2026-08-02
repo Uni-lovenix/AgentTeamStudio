@@ -51,7 +51,11 @@ describe('llm-client', () => {
     );
 
     expect(team.projectName).toBe('LLM Project');
-    expect(team.agents[0].name).toBe('开发者');
+    expect(team.agents.some((agent) => agent.name === '开发者')).toBe(true);
+    expect(team.agents.some((agent) => agent.name === '规划者')).toBe(true);
+    expect(team.agents.some((agent) => agent.name === '评估者')).toBe(true);
+    expect(team.workflow[0].name).toContain('冲刺协议');
+    expect(team.workflow.some((step) => step.name.includes('评估与反馈'))).toBe(true);
   });
 
   it('throws when the response contains no JSON', async () => {
@@ -102,6 +106,9 @@ describe('llm-client', () => {
     );
 
     expect(team.projectName).toBe('LLM Project');
+    expect(team.agents.some((agent) => agent.name === '开发者')).toBe(true);
+    expect(team.agents.some((agent) => agent.name === '规划者')).toBe(true);
+    expect(team.agents.some((agent) => agent.name === '评估者')).toBe(true);
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.minimaxi.com/anthropic/v1/messages',
       expect.objectContaining({ method: 'POST' })

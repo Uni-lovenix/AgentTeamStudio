@@ -14,6 +14,8 @@ export const AGENT_RULES_FILENAMES = [
   CLAUDE_RULES_FILENAME,
   CODEX_RULES_FILENAME,
 ] as const;
+const COLLABORATION_POINTER =
+  '协作流程：规划者每项任务开始前制定冲刺协议，开发者按协议开发，评估者按协议校验并反馈给开发者修改。';
 
 export interface TargetInspection {
   directoryExists: boolean;
@@ -27,6 +29,19 @@ function bulletItems(items: string[]): string {
 
 function bulletOrNone(items: string[]): string {
   return bulletItems(items) || '- 无';
+}
+
+function collaborationRule(agent: AgentRole): string {
+  if (agent.name === '规划者') {
+    return '- 每项任务开始前制定冲刺协议，明确任务拆解、目标、范围、完成标准、验收方式和交付物。';
+  }
+  if (agent.name === '评估者') {
+    return '- 按冲刺协议校验开发者交付；发现问题反馈给对应开发者修改，并复核到通过。';
+  }
+  if (agent.name.includes('开发者')) {
+    return '- 按规划者制定的冲刺协议开发；收到评估者反馈后修改并提交复核。';
+  }
+  return '- 按冲刺协议完成职责，接受评估者校验并按反馈修改。';
 }
 
 function safeAgentFileName(agent: AgentRole, index: number): string {
@@ -80,6 +95,10 @@ ${bulletOrNone(agent.dependsOn)}
 
 ${bulletOrNone(agent.notifies)}
 
+## 协作规则
+
+${collaborationRule(agent)}
+
 ## 协作流程
 
 ${ownedSteps}
@@ -119,6 +138,10 @@ ${team.requirement}
 
 生成方式：${team.generatedBy === 'llm' ? 'LLM 辅助生成' : '需求驱动生成'}
 
+## 冲刺协议
+
+每项任务开始前，规划者必须制定冲刺协议，包含任务目标、范围、任务拆解、完成标准、验收方式和交付物。开发者按协议开发；评估者按协议校验，发现问题反馈给对应开发者修改；通过后进入下一任务或最终验收。
+
 ## 智能体路由
 
 每个智能体开始工作前，必须读取与自身角色对应的文件；其他角色的规则文件不需要加载。
@@ -143,11 +166,20 @@ function renderTeamPointer(): string {
   return `使用智能体规则在 ${TEAM_RULES_FILENAME} 文件`;
 }
 
-function appendTeamPointerIfMissing(absolutePath: string): boolean {
+function appendTeamRulesIfMissing(absolutePath: string): boolean {
   if (!fs.existsSync(absolutePath)) return false;
   const content = fs.readFileSync(absolutePath, 'utf-8');
-  if (content.includes(renderTeamPointer())) return false;
-  const nextContent = `${content.replace(/\s+$/, '')}\n\n## Agent Team Studio\n\n${renderTeamPointer()}\n`;
+  const needsPointer = !content.includes(renderTeamPointer());
+  const needsCollaboration = !content.includes(COLLABORATION_POINTER);
+  if (!needsPointer && !needsCollaboration) return false;
+  const additions: string[] = [];
+  if (needsPointer) {
+    additions.push(`## Agent Team Studio\n\n${renderTeamPointer()}`);
+  }
+  if (needsCollaboration) {
+    additions.push(COLLABORATION_POINTER);
+  }
+  const nextContent = `${content.replace(/\s+$/, '')}\n\n${additions.join('\n\n')}\n`;
   const tempPath = `${absolutePath}.tmp`;
   fs.writeFileSync(tempPath, nextContent, 'utf-8');
   fs.renameSync(tempPath, absolutePath);
@@ -214,7 +246,7 @@ export class ProjectWriter {
     const appendedFiles: string[] = [];
     for (const filename of AGENT_RULES_FILENAMES) {
       const rulePath = path.join(absolute, filename);
-      if (appendTeamPointerIfMissing(rulePath)) {
+      if (appendTeamRulesIfMissing(rulePath)) {
         appendedFiles.push(filename);
       }
     }

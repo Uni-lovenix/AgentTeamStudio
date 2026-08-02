@@ -6,8 +6,8 @@ Agent Team Studio 是一个跨平台桌面应用，支持 Windows 和 macOS。�
 
 - `AGENTS.team.md`：团队级规则、智能体路由、协作流程和工程约定；不重复每个角色的完整明细。
 - `agents.json`：机器可读的团队配置，schema version 为 1。
-- `agents/`：每个智能体一个独立 Markdown 文件，包含该角色的使命、职责、技能、工具、交付物和协作流程。
-- 如果目标目录已存在 `AGENTS.md` 或 `CLAUDE.md`，应用向这些文件追加一行规则入口指向 `AGENTS.team.md`，不会覆盖原有规则。
+- `agents/`：每个智能体一个独立 Markdown 文件，包含该角色的使命、职责、技能、工具、交付物、协作规则和协作流程。
+- 如果目标目录已存在 `AGENTS.md` 或 `CLAUDE.md`，应用向这些文件追加规则入口和冲刺协议协作流程，不会覆盖原有规则。
 
 当前版本只负责团队配置的生成和导出，不执行多智能体工作流。
 
@@ -39,8 +39,10 @@ shasum -a 256 AgentTeamStudio-0.1.0-mac-arm64.zip AgentTeamStudio-0.1.0-win-x64.
 ## 功能
 
 - 输入项目名称、需求描述和技术栈提示。
-- 本地分析从需求中识别必须完成的责任区块，为每个角色生成使命和具体职责，而不是按前端、后端等实现功能拆分。
-- 可选 OpenAI 兼容或 Anthropic/MiniMax 兼容 LLM 生成更贴合需求的团队配置。
+- 本地分析从需求中识别必须完成的责任区块，为每个开发者角色生成使命和具体职责，而不是按前端、后端等实现功能拆分。
+- 每个团队都强制包含“规划者”和“评估者”：规划者负责任务分解、方案、流程协调和冲刺协议；评估者按冲刺协议校验结果并反馈给开发者修改。
+- 每个责任区块对应一个开发者角色，开发者可以有多个；每项任务开始前都会生成冲刺协议，开发、校验、反馈修改构成完整闭环。
+- 可选 OpenAI 兼容或 Anthropic/MiniMax 兼容 LLM 生成更贴合需求的团队配置，LLM 结果同样会补齐必需角色和冲刺流程。
 - 编辑角色名称、使命、职责、技能、工具、交付物、依赖和通知关系。
 - 编辑协作流程和分支、提交、PR、测试、文档约定。
 - 实际生成过程日志展示“依据什么信号、生成哪个角色、得到什么结果”，而不是只罗列步骤名称。
@@ -88,7 +90,7 @@ bash init.sh
 6. 点击“选择项目目录”，指定一个已有的项目目录。
 7. 点击“写入项目目录”，应用会生成 `AGENTS.team.md`、`agents.json`，以及 `agents/` 下每个智能体一个 Markdown 文件。
 8. 如果目录中已存在这些团队文件或 `agents/` 目录，应用会要求确认后才覆盖。
-9. 如果目录中已存在 `AGENTS.md` 或 `CLAUDE.md`，应用会向存在的规则文件追加“使用智能体规则在 AGENTS.team.md 文件”，并保留原内容。
+9. 如果目录中已存在 `AGENTS.md` 或 `CLAUDE.md`，应用会向存在的规则文件追加“使用智能体规则在 AGENTS.team.md 文件”和冲刺协议协作流程，并保留原内容。
 
 重置按钮只清除应用本地的项目草稿和设置，不会删除或修改目标项目目录中的文件。
 
@@ -114,26 +116,26 @@ LLM 返回结果会经过结构校验。如果请求失败、超时或返回格�
 
 - `AGENTS.team.md`：团队级规则和智能体路由，协作流程与工程约定；每个角色的完整明细只存在于 `agents/*.md`。
 - `agents.json`：完整的机器可读团队配置。
-- `agents/`：每个智能体一个独立 Markdown 文件。
-- `AGENTS.md` / `CLAUDE.md`：项目原有规则文件；应用不会覆盖它们，只会在这些文件存在时追加一行指向 `AGENTS.team.md` 的规则入口。
+- `agents/`：每个智能体一个独立 Markdown 文件，包含该角色的使命、职责、技能、工具、交付物、协作规则和协作流程。
+- `AGENTS.md` / `CLAUDE.md`：项目原有规则文件；应用不会覆盖它们，只会在这些文件存在时追加指向 `AGENTS.team.md` 的规则入口和冲刺协议协作流程。
 
 `agents.json` 中的单个角色结构如下：
 
 ```json
 {
   "id": "role-id",
-  "name": "账户与权限负责人",
+  "name": "账户与权限开发者",
   "mission": "保证身份、账户、权限和数据可见范围完整可审计。",
   "responsibilities": ["设计注册、登录、认证、会话和找回流程", "定义用户、角色、权限与数据隔离规则"],
   "skills": ["身份认证", "权限模型", "审计"],
   "tools": ["权限矩阵", "认证方案", "审计清单"],
   "deliverables": ["账户流程说明", "权限矩阵", "审计清单"],
-  "dependsOn": ["需求与验收负责人"],
-  "notifies": ["交付协调负责人"]
+  "dependsOn": ["规划者"],
+  "notifies": ["评估者"]
 }
 ```
 
-完整 `TeamConfig` 还包含 `schemaVersion`、`projectName`、`requirement`、`techStackHints`、`generatedBy`、`createdAt`、`workflow`、`agents` 和 `conventions`。
+完整 `TeamConfig` 还包含 `schemaVersion`、`projectName`、`requirement`、`techStackHints`、`generatedBy`、`createdAt`、`workflow`、`agents` 和 `conventions`。生成后的 `workflow` 必须包含“制定冲刺协议”“按协议开发”“评估与反馈”步骤。
 
 ## 开发命令
 
