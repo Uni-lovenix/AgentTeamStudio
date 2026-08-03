@@ -1,7 +1,23 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { AgentRole, TeamConfig, WriteTeamResult } from '../shared/types';
+import {
+  renderAgentsRules,
+  renderClaudeRules,
+  renderFeatureList,
+  renderInitScript,
+  renderProcessDoc,
+  renderProgress,
+  renderSessionHandoff,
+  safeAgentFileName,
+} from './harness-templates';
 import { logger } from './logger';
+import {
+  formatValidationErrors,
+  repairTeamConfig,
+  validateGeneratedHarness,
+  validateTeamConfig,
+} from './team-config-validator';
 
 const SERVICE = 'project-writer';
 
@@ -14,12 +30,6 @@ export const AGENT_RULES_FILENAMES = [
   CLAUDE_RULES_FILENAME,
   CODEX_RULES_FILENAME,
 ] as const;
-const COLLABORATION_POINTER =
-  '协作流程：规划者每个迭代开始前制定迭代协议，开发者按迭代协议开发，评估者按迭代协议校验并反馈给开发者修改。';
-const LEGACY_COLLABORATION_POINTERS = [
-  '协作流程：规划者每项任务开始前制定冲刺协议，开发者按协议开发，评估者按协议校验并反馈给开发者修改。',
-  '协作流程：规划者每个迭代开始前制定冲刺协议，开发者按迭代协议开发，评估者按迭代协议校验并反馈给开发者修改。',
-];
 
 export interface TargetInspection {
   directoryExists: boolean;
@@ -36,28 +46,18 @@ function bulletOrNone(items: string[]): string {
 }
 
 function collaborationRule(agent: AgentRole): string {
-  if (agent.name === '规划者') {
-    return '- 每个迭代开始前制定迭代协议，明确目标、范围、计划、交付物和退出标准。';
+  switch (agent.kind) {
+    case 'planner':
+      return '- 每个迭代开始前制定迭代协议，明确目标、范围、计划、交付物和退出标准。';
+    case 'evaluator':
+      return '- 按迭代协议和退出标准校验开发者交付；发现问题反馈给对应开发者修改，并复核到通过。';
+    case 'developer':
+      return '- 按规划者制定的迭代协议开发；收到评估者反馈后修改并提交复核。';
+    case 'documentation':
+      return '- 沉淀需求、架构、接口、运行说明和交接清单，配合规划者完成移交验收。';
+    default:
+      return '- 按迭代协议完成职责，接受评估者校验并按反馈修改。';
   }
-  if (agent.name === '评估者') {
-    return '- 按迭代协议和退出标准校验开发者交付；发现问题反馈给对应开发者修改，并复核到通过。';
-  }
-  if (agent.name.includes('开发者')) {
-    return '- 按规划者制定的迭代协议开发；收到评估者反馈后修改并提交复核。';
-  }
-  return '- 按迭代协议完成职责，接受评估者校验并按反馈修改。';
-}
-
-function safeAgentFileName(agent: AgentRole, index: number): string {
-  const base =
-    agent.name
-      .trim()
-      .replace(/[\\/:*?"<>|#%{}~^[\]]/g, '-')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^[.-]+|[.-]+$/g, '')
-      .slice(0, 80) || `agent-${index + 1}`;
-  return `${String(index + 1).padStart(2, '0')}-${base}.md`;
 }
 
 export function renderAgentMarkdown(agent: AgentRole, team: TeamConfig): string {
@@ -197,26 +197,16 @@ function renderTeamPointer(): string {
 
 function appendTeamRulesIfMissing(absolutePath: string): boolean {
   if (!fs.existsSync(absolutePath)) return false;
-  const originalContent = fs.readFileSync(absolutePath, 'utf-8');
-  let content = originalContent;
-  for (const legacyPointer of LEGACY_COLLABORATION_POINTERS) {
-    content = content.split(legacyPointer).join(COLLABORATION_POINTER);
-  }
-  const needsPointer = !content.includes(renderTeamPointer());
-  const needsCollaboration = !content.includes(COLLABORATION_POINTER);
-  if (!needsPointer && !needsCollaboration) return false;
-  const additions: string[] = [];
-  if (needsPointer) {
-    additions.push(`## Agent Team Studio\n\n${renderTeamPointer()}`);
-  }
-  if (needsCollaboration) {
-    additions.push(COLLABORATION_POINTER);
-  }
-  const nextContent = `${content.replace(/\s+$/, '')}\n\n${additions.join('\n\n')}\n`;
+  const content = fs.readFileSync(absolutePath, 'utf-8');
+  const alreadyMapped =
+    content.includes('## 智能体地图') && content.includes('AGENTS.team.md');
+  const needsPointer = !content.includes(renderTeamPointer()) && !alreadyMapped;
+  if (!needsPointer) return false;
+  const nextContent = `${content.replace(/\s+$/, '')}\n\n## Agent Team Studio\n\n${renderTeamPointer()}\n`;
   const tempPath = `${absolutePath}.tmp`;
   fs.writeFileSync(tempPath, nextContent, 'utf-8');
   fs.renameSync(tempPath, absolutePath);
-  return content !== originalContent || needsPointer || needsCollaboration;
+  return true;
 }
 
 export class ProjectWriter {
@@ -247,6 +237,11 @@ export class ProjectWriter {
     targetDirectory: string,
     overwrite: boolean
   ): WriteTeamResult {
+    const safeTeam = repairTeamConfig(team);
+    const validation = validateTeamConfig(safeTeam);
+    if (!validation.ok) {
+      throw new Error(`团队配置校验失败：\n${formatValidationErrors(validation)}`);
+    }
     const absolute = path.resolve(targetDirectory);
     if (!fs.existsSync(absolute) || !fs.statSync(absolute).isDirectory()) {
       throw new Error(`目标目录不存在或不是文件夹：${absolute}`);
@@ -257,9 +252,9 @@ export class ProjectWriter {
     }
 
     const files = [
-      { filename: TEAM_RULES_FILENAME, content: renderTeamMarkdown(team) },
-      { filename: AGENTS_JSON_FILENAME, content: `${JSON.stringify(team, null, 2)}\n` },
-      ...agentFileEntries(team),
+      { filename: TEAM_RULES_FILENAME, content: renderTeamMarkdown(safeTeam) },
+      { filename: AGENTS_JSON_FILENAME, content: `${JSON.stringify(safeTeam, null, 2)}\n` },
+      ...agentFileEntries(safeTeam),
     ];
     const createdFiles: string[] = [];
     const overwrittenFiles: string[] = [];
@@ -276,18 +271,27 @@ export class ProjectWriter {
         createdFiles.push(file.filename);
       }
     }
+    this.writeMissingHarnessFiles(absolute, safeTeam, createdFiles);
     const appendedFiles: string[] = [];
     for (const filename of AGENT_RULES_FILENAMES) {
+      if (createdFiles.includes(filename)) continue;
       const rulePath = path.join(absolute, filename);
       if (appendTeamRulesIfMissing(rulePath)) {
         appendedFiles.push(filename);
       }
+    }
+    const harnessValidation = validateGeneratedHarness(absolute, safeTeam, createdFiles);
+    if (!harnessValidation.ok) {
+      throw new Error(
+        `导出后 harness 校验失败：\n${formatValidationErrors(harnessValidation)}`
+      );
     }
     this.log.info('Wrote team config to project directory', {
       targetDirectory: absolute,
       createdFiles,
       overwrittenFiles,
       appendedFiles,
+      repairs: validation.repairs,
     });
     return {
       targetDirectory: absolute,
@@ -295,5 +299,41 @@ export class ProjectWriter {
       overwrittenFiles,
       appendedFiles,
     };
+  }
+
+  private writeMissingHarnessFiles(
+    absolute: string,
+    team: TeamConfig,
+    createdFiles: string[]
+  ): void {
+    const files = [
+      { filename: CLAUDE_RULES_FILENAME, content: renderClaudeRules(team) },
+      { filename: CODEX_RULES_FILENAME, content: renderAgentsRules(team) },
+      { filename: 'feature_list.json', content: renderFeatureList(team) },
+      { filename: 'progress.md', content: renderProgress(team) },
+      { filename: 'session-handoff.md', content: renderSessionHandoff(team) },
+      { filename: 'init.sh', content: renderInitScript() },
+      { filename: 'docs/PROCESS.md', content: renderProcessDoc(team) },
+    ];
+    const harnessCreated: string[] = [];
+    for (const file of files) {
+      const fullPath = path.join(absolute, file.filename);
+      if (fs.existsSync(fullPath)) continue;
+      fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+      const tempPath = `${fullPath}.tmp`;
+      fs.writeFileSync(tempPath, file.content, 'utf-8');
+      fs.renameSync(tempPath, fullPath);
+      if (file.filename === 'init.sh') {
+        fs.chmodSync(fullPath, 0o755);
+      }
+      createdFiles.push(file.filename);
+      harnessCreated.push(file.filename);
+    }
+    if (harnessCreated.length > 0) {
+      this.log.info('Initialized RUP harness files', {
+        targetDirectory: absolute,
+        harnessCreated,
+      });
+    }
   }
 }

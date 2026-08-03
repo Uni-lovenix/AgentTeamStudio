@@ -5,6 +5,7 @@ import {
   IPC_CHANNELS,
   ProjectDraft,
   SaveSettingsInput,
+  TeamConfig,
   WriteTeamInput,
 } from '../shared/types';
 import { PersistenceService } from '../services/persistence-service';
@@ -14,6 +15,7 @@ import { LlmClient } from '../services/llm-client';
 import { TeamGenerationService } from '../services/team-generation-service';
 import { ProjectWriter } from '../services/project-writer';
 import { logger } from '../services/logger';
+import { repairTeamConfig, validateTeamConfig } from '../services/team-config-validator';
 
 const SERVICE = 'ipc-handlers';
 
@@ -85,6 +87,15 @@ export function registerIpcHandlers(ipcMain: IpcMain, services: ServiceRegistry)
       input.targetDirectory,
       Boolean(input.overwrite)
     );
+  });
+
+  ipcMain.handle(IPC_CHANNELS.VALIDATE_TEAM, async (_event, team: TeamConfig) => {
+    logger.info(SERVICE, 'IPC: VALIDATE_TEAM', {
+      agentCount: team.agents.length,
+    });
+    const repaired = repairTeamConfig(team);
+    const validation = validateTeamConfig(repaired);
+    return { team: repaired, validation };
   });
 
   ipcMain.handle(IPC_CHANNELS.SELECT_DIRECTORY, async (event) => {

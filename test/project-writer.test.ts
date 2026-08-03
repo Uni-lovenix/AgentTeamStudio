@@ -7,6 +7,7 @@ import {
   ProjectWriter,
   renderTeamMarkdown,
 } from '../src/services/project-writer';
+import { safeAgentFileName } from '../src/services/harness-templates';
 
 const tempDirs: string[] = [];
 
@@ -23,7 +24,7 @@ afterEach(() => {
 });
 
 describe('project-writer', () => {
-  it('writes AGENTS.team.md and agents.json without creating AGENTS.md', () => {
+  it('writes team files and initializes the core RUP harness files', () => {
     const dir = makeTempDir();
     const writer = new ProjectWriter();
     const team = buildTeamConfig({
@@ -34,7 +35,17 @@ describe('project-writer', () => {
     const result = writer.writeToDirectory(team, dir, false);
 
     expect(result.createdFiles).toEqual(
-      expect.arrayContaining(['AGENTS.team.md', 'agents.json'])
+      expect.arrayContaining([
+        'AGENTS.team.md',
+        'agents.json',
+        'AGENTS.md',
+        'CLAUDE.md',
+        'feature_list.json',
+        'progress.md',
+        'session-handoff.md',
+        'init.sh',
+        'docs/PROCESS.md',
+      ])
     );
     expect(result.createdFiles.filter((file) => file.startsWith('agents/'))).toHaveLength(
       team.agents.length
@@ -42,6 +53,13 @@ describe('project-writer', () => {
     expect(result.overwrittenFiles).toEqual([]);
     expect(fs.existsSync(path.join(dir, 'AGENTS.team.md'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'agents.json'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'AGENTS.md'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'CLAUDE.md'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'feature_list.json'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'progress.md'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'session-handoff.md'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'init.sh'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'docs', 'PROCESS.md'))).toBe(true);
     const agentFiles = fs.readdirSync(path.join(dir, 'agents'));
     expect(agentFiles).toHaveLength(team.agents.length);
     expect(
@@ -49,9 +67,7 @@ describe('project-writer', () => {
         fs.readFileSync(path.join(dir, 'agents', file), 'utf-8').includes(team.agents[0].name)
       )
     ).toBe(true);
-    expect(fs.existsSync(path.join(dir, 'AGENTS.md'))).toBe(false);
-    expect(fs.existsSync(path.join(dir, 'CLAUDE.md'))).toBe(false);
-    expect(writer.inspectTarget(dir).existingRuleFiles).toEqual([]);
+    expect(writer.inspectTarget(dir).existingRuleFiles).toEqual(['CLAUDE.md', 'AGENTS.md']);
     expect(renderTeamMarkdown(team)).toContain('# Demo 智能体团队');
     expect(renderTeamMarkdown(team)).toContain('## RUP 过程管理');
     expect(renderTeamMarkdown(team)).toContain('## 迭代协议');
@@ -63,6 +79,37 @@ describe('project-writer', () => {
         .readFileSync(path.join(dir, 'agents', agentFiles[0]), 'utf-8')
         .includes('## 协作规则')
     ).toBe(true);
+
+    const agentsRules = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf-8');
+    const claudeRules = fs.readFileSync(path.join(dir, 'CLAUDE.md'), 'utf-8');
+    expect(agentsRules).toContain('## 智能体地图');
+    expect(agentsRules).toContain('不一次性加载所有角色文件');
+    expect(agentsRules).not.toContain('## Startup Rules');
+    expect(agentsRules).not.toContain('## RUP 过程管理');
+    expect(agentsRules).not.toContain('## Definition of Done');
+    expect(claudeRules).toContain('## 智能体地图');
+    expect(claudeRules).toContain('不一次性加载所有角色文件');
+    expect(claudeRules).not.toContain('## Operating Loop');
+    expect(claudeRules).not.toContain('## RUP Process');
+    expect(claudeRules).not.toContain('## Completion Gate');
+    team.agents.forEach((agent, index) => {
+      expect(agentsRules).toContain(`${agent.name}：\`agents/${safeAgentFileName(agent, index)}\``);
+      expect(claudeRules).toContain(`${agent.name}：\`agents/${safeAgentFileName(agent, index)}\``);
+    });
+
+    const featureList = JSON.parse(fs.readFileSync(path.join(dir, 'feature_list.json'), 'utf-8'));
+    expect(featureList.features[0]).toMatchObject({
+      id: 'harness-bootstrap',
+      status: 'pass',
+      rupPhase: 'inception',
+    });
+    expect(featureList.features.some((feature: { status: string }) => feature.status === 'not_started')).toBe(
+      true
+    );
+    expect(
+      fs.readFileSync(path.join(dir, 'docs', 'PROCESS.md'), 'utf-8')
+    ).toContain('## 迭代协议');
+    expect(fs.statSync(path.join(dir, 'init.sh')).mode & 0o111).not.toBe(0);
   });
 
   it('refuses to overwrite unless explicitly allowed', () => {
@@ -84,6 +131,39 @@ describe('project-writer', () => {
     );
   });
 
+  it('preserves existing harness state files when writing with overwrite enabled', () => {
+    const dir = makeTempDir();
+    fs.writeFileSync(path.join(dir, 'feature_list.json'), '{"features":[]}');
+    fs.writeFileSync(path.join(dir, 'progress.md'), 'existing progress');
+    fs.writeFileSync(path.join(dir, 'session-handoff.md'), 'existing handoff');
+    fs.writeFileSync(path.join(dir, 'init.sh'), '#!/bin/bash\necho keep');
+    fs.mkdirSync(path.join(dir, 'docs'));
+    fs.writeFileSync(path.join(dir, 'docs', 'PROCESS.md'), 'existing process');
+    const writer = new ProjectWriter();
+    const team = buildTeamConfig({
+      projectName: 'Demo',
+      requirement: '一个跨平台桌面应用，用于生成多智能体团队配置。',
+    });
+
+    const result = writer.writeToDirectory(team, dir, true);
+
+    const preservedFiles = [
+      'feature_list.json',
+      'progress.md',
+      'session-handoff.md',
+      'init.sh',
+      'docs/PROCESS.md',
+    ];
+    expect(result.createdFiles.filter((file) => preservedFiles.includes(file))).toEqual([]);
+    expect(fs.readFileSync(path.join(dir, 'feature_list.json'), 'utf-8')).toBe('{"features":[]}');
+    expect(fs.readFileSync(path.join(dir, 'progress.md'), 'utf-8')).toBe('existing progress');
+    expect(fs.readFileSync(path.join(dir, 'session-handoff.md'), 'utf-8')).toBe('existing handoff');
+    expect(fs.readFileSync(path.join(dir, 'init.sh'), 'utf-8')).toBe('#!/bin/bash\necho keep');
+    expect(fs.readFileSync(path.join(dir, 'docs', 'PROCESS.md'), 'utf-8')).toBe(
+      'existing process'
+    );
+  });
+
   it('appends a pointer to existing AGENTS.md without replacing its rules', () => {
     const dir = makeTempDir();
     const agentsPath = path.join(dir, 'AGENTS.md');
@@ -97,18 +177,15 @@ describe('project-writer', () => {
     const result = writer.writeToDirectory(team, dir, false);
     const content = fs.readFileSync(agentsPath, 'utf-8');
 
-    expect(writer.inspectTarget(dir).existingRuleFiles).toEqual(['AGENTS.md']);
+    expect(writer.inspectTarget(dir).existingRuleFiles).toEqual(['CLAUDE.md', 'AGENTS.md']);
     expect(result.appendedFiles).toEqual(['AGENTS.md']);
     expect(content).toContain('# Existing Codex Rules');
     expect(content).toContain('使用智能体规则在 AGENTS.team.md 文件');
-    expect(content).toContain('协作流程：规划者每个迭代开始前制定迭代协议');
+    expect(content).not.toContain('协作流程：规划者每个迭代开始前制定迭代协议');
 
     writer.writeToDirectory(team, dir, true);
     const secondContent = fs.readFileSync(agentsPath, 'utf-8');
     expect(secondContent.match(/使用智能体规则在 AGENTS\.team\.md 文件/g)).toHaveLength(1);
-    expect(
-      secondContent.match(/协作流程：规划者每个迭代开始前制定迭代协议/g)
-    ).toHaveLength(1);
   });
 
   it('appends a pointer to existing CLAUDE.md without replacing its rules', () => {
@@ -124,11 +201,11 @@ describe('project-writer', () => {
     const result = writer.writeToDirectory(team, dir, false);
     const content = fs.readFileSync(claudePath, 'utf-8');
 
-    expect(writer.inspectTarget(dir).existingRuleFiles).toEqual(['CLAUDE.md']);
+    expect(writer.inspectTarget(dir).existingRuleFiles).toEqual(['CLAUDE.md', 'AGENTS.md']);
     expect(result.appendedFiles).toEqual(['CLAUDE.md']);
     expect(content).toContain('# Existing Claude Rules');
     expect(content).toContain('使用智能体规则在 AGENTS.team.md 文件');
-    expect(content).toContain('评估者按迭代协议校验并反馈给开发者修改');
+    expect(content).not.toContain('协作流程：规划者每个迭代开始前制定迭代协议');
   });
 
   it('appends pointers to both CLAUDE.md and AGENTS.md when both exist', () => {
@@ -149,27 +226,17 @@ describe('project-writer', () => {
     expect(result.appendedFiles).toEqual(['CLAUDE.md', 'AGENTS.md']);
     expect(fs.readFileSync(claudePath, 'utf-8')).toContain('使用智能体规则在 AGENTS.team.md 文件');
     expect(fs.readFileSync(agentsPath, 'utf-8')).toContain('使用智能体规则在 AGENTS.team.md 文件');
-    expect(fs.readFileSync(claudePath, 'utf-8')).toContain(
-      '协作流程：规划者每个迭代开始前制定迭代协议'
-    );
-    expect(fs.readFileSync(agentsPath, 'utf-8')).toContain(
-      '协作流程：规划者每个迭代开始前制定迭代协议'
-    );
+    expect(fs.readFileSync(claudePath, 'utf-8')).not.toContain('协作流程：');
+    expect(fs.readFileSync(agentsPath, 'utf-8')).not.toContain('协作流程：');
 
     writer.writeToDirectory(team, dir, true);
     const claudeContent = fs.readFileSync(claudePath, 'utf-8');
     const agentsContent = fs.readFileSync(agentsPath, 'utf-8');
     expect(claudeContent.match(/使用智能体规则在 AGENTS\.team\.md 文件/g)).toHaveLength(1);
     expect(agentsContent.match(/使用智能体规则在 AGENTS\.team\.md 文件/g)).toHaveLength(1);
-    expect(
-      claudeContent.match(/协作流程：规划者每个迭代开始前制定迭代协议/g)
-    ).toHaveLength(1);
-    expect(
-      agentsContent.match(/协作流程：规划者每个迭代开始前制定迭代协议/g)
-    ).toHaveLength(1);
   });
 
-  it('migrates a legacy sprint pointer to the iteration protocol', () => {
+  it('preserves legacy content while appending only the team rules pointer', () => {
     const dir = makeTempDir();
     const agentsPath = path.join(dir, 'AGENTS.md');
     fs.writeFileSync(
@@ -187,14 +254,14 @@ describe('project-writer', () => {
 
     expect(result.appendedFiles).toEqual(['AGENTS.md']);
     expect(content).toContain('# Existing Codex Rules');
-    expect(content).not.toContain('冲刺协议');
-    expect(content).toContain('协作流程：规划者每个迭代开始前制定迭代协议');
+    expect(content).toContain('冲刺协议');
+    expect(content).not.toContain('协作流程：规划者每个迭代开始前制定迭代协议');
     expect(content).toContain('使用智能体规则在 AGENTS.team.md 文件');
 
     const secondResult = writer.writeToDirectory(team, dir, true);
     const secondContent = fs.readFileSync(agentsPath, 'utf-8');
     expect(secondResult.appendedFiles).toEqual([]);
-    expect(secondContent.match(/协作流程：规划者每个迭代开始前制定迭代协议/g)).toHaveLength(1);
+    expect(secondContent.match(/使用智能体规则在 AGENTS\.team\.md 文件/g)).toHaveLength(1);
   });
 
   it('rejects a missing target directory', () => {

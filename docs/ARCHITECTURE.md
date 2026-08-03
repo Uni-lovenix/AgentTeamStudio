@@ -28,8 +28,8 @@ Agent Team Studio is an Electron desktop application built with TypeScript and R
 +-----------------------------------------------------------+
 |                     Services Layer                         |
 |  ProjectService | RequirementAnalyzer | LlmClient         |
-|  TeamGenerationService | ProjectWriter | SettingsService  |
-|  ProcessManagement | PersistenceService | Logger          |
+|  TeamGenerationService | ProjectWriter | HarnessTemplates | SettingsService  |
+|  TeamConfigValidator | ProcessManagement | PersistenceService | Logger |
 +-----------------------------------------------------------+
 ```
 
@@ -51,7 +51,7 @@ Exposes `window.agentTeamStudio` with these namespaces:
 ```typescript
 window.agentTeamStudio = {
   projects: { list, create, get, save, delete },
-  team:     { generate, inspect, write },
+  team:     { generate, inspect, validate, write },
   dialog:   { selectDirectory },
   settings: { get, save, test },
   app:      { reset, status },
@@ -79,7 +79,7 @@ React 18 application bundled by Vite:
 2. Renderer calls `window.agentTeamStudio.team.generate`.
 3. `TeamGenerationService` validates the requirement and calls `buildTeamConfig`.
 4. `RequirementAnalyzer` scans the requirement and tech hints to identify responsibility areas that must be completed.
-5. Planner and Evaluator roles are always added. Each responsibility area becomes a Developer role with a mission, concrete responsibilities, skills, tools, and deliverables.
+5. Planner and Evaluator roles are always added with stable `kind` semantics. Each responsibility area becomes a Developer role with a mission, concrete responsibilities, skills, tools, and deliverables.
 6. `ProcessManagement` builds RUP phases and iterations. The workflow starts with project start and iteration protocol creation by Planner, proceeds through developer implementation, evaluation/feedback, iteration review, phase acceptance, and transition acceptance.
 7. The generated `TeamConfig` includes a `generationLog` that records the decision steps.
 8. Renderer saves the result as a local `ProjectDraft` and renders the log in `GenerationLog`.
@@ -90,17 +90,20 @@ React 18 application bundled by Vite:
 2. `SettingsService` stores the API key encrypted with Electron `safeStorage`.
 3. `LlmClient` calls OpenAI-compatible `/chat/completions` or Anthropic-compatible `/v1/messages` from the main process.
 4. `normalizeTeamConfig` validates the returned JSON and applies fallback defaults.
-5. On failure, `TeamGenerationService` falls back to requirement-driven local generation and returns a warning.
+5. `TeamConfigValidator` repairs required role kinds, IDs, workflow owners, and RUP references.
+6. On failure or invalid repaired output, `TeamGenerationService` falls back to requirement-driven local generation and returns a warning.
 
 ### Export Flow
 
 1. User selects an existing project directory with a native dialog.
 2. Renderer calls `team.inspect` to check existing `AGENTS.team.md`, `agents.json`, `agents/`, and whether `AGENTS.md` or `CLAUDE.md` exists.
 3. User confirms overwrite when `AGENTS.team.md` or `agents.json` already exist.
-4. Renderer calls `team.write`.
-5. `ProjectWriter` writes `AGENTS.team.md` as the team-level router, `agents.json`, and one Markdown file per agent under `agents/` atomically with temp-file rename.
-6. For each existing rule file (`AGENTS.md`, `CLAUDE.md`), it appends a pointer to `AGENTS.team.md` plus the iteration-protocol collaboration flow without overwriting existing rules.
-7. Result is persisted on the local draft and shown in the status bar.
+4. Renderer calls `team.validate` to repair the team and block unfixable validation errors before prompting overwrite.
+5. Renderer calls `team.write`.
+6. `ProjectWriter` writes `AGENTS.team.md` as the team-level router, `agents.json`, and one Markdown file per agent under `agents/` atomically with temp-file rename.
+7. `ProjectWriter` uses `HarnessTemplates` to initialize missing `AGENTS.md`, `CLAUDE.md`, `feature_list.json`, `progress.md`, `session-handoff.md`, `init.sh`, and `docs/PROCESS.md`; missing rule files are rendered as maps.
+8. For each existing rule file (`AGENTS.md`, `CLAUDE.md`), it appends only a pointer to `AGENTS.team.md` without overwriting existing rules.
+9. `TeamConfigValidator` validates the generated harness on disk; result is persisted on the local draft and shown in the status bar.
 
 ## IPC Channels
 
@@ -113,7 +116,8 @@ React 18 application bundled by Vite:
 | `projects:delete` | R -> M | Delete a draft |
 | `team:generate` | R -> M | Generate team config |
 | `team:inspect` | R -> M | Inspect target directory files |
-| `team:write` | R -> M | Write `AGENTS.team.md`, `agents.json`, and `agents/*.md`; append pointer and RUP iteration collaboration flow to existing `AGENTS.md` / `CLAUDE.md` |
+| `team:validate` | R -> M | Repair and validate a team before export |
+| `team:write` | R -> M | Write `AGENTS.team.md`, `agents.json`, `agents/*.md`, and missing core RUP harness files; append only a pointer to existing `AGENTS.md` / `CLAUDE.md` |
 | `dialog:select-directory` | R -> M | Open native directory picker |
 | `settings:get` | R -> M | Get LLM settings snapshot |
 | `settings:save` | R -> M | Save LLM settings |
@@ -133,9 +137,14 @@ settings.json    # LLM settings and encrypted API key material
 Exported project data:
 
 ```
-AGENTS.team.md   # team-level rules and agent routing index
-agents.json      # schema version 2 machine-readable team config
-agents/          # one Markdown file per agent
-AGENTS.md        # existing Codex rules, only receives a pointer and collaboration flow when present
-CLAUDE.md        # existing Claude rules, only receives a pointer and collaboration flow when present
+AGENTS.team.md    # team-level rules and agent routing index
+agents.json       # schema version 3 machine-readable team config
+agents/           # one Markdown file per agent
+AGENTS.md         # initialized Codex rule/agent map; existing files only receive pointer
+CLAUDE.md         # initialized Claude rule/agent map; existing files only receive pointer
+feature_list.json # RUP feature state tracker
+progress.md       # session progress and next action
+session-handoff.md# cross-session handoff
+init.sh           # standard startup and verification path
+docs/PROCESS.md   # RUP phases, milestones, and iteration protocol
 ```

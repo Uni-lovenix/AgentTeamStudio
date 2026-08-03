@@ -6,6 +6,11 @@ import {
 import { buildTeamConfig } from './requirement-analyzer';
 import { LlmClient } from './llm-client';
 import { SettingsService } from './settings-service';
+import {
+  formatValidationErrors,
+  repairTeamConfig,
+  validateTeamConfig,
+} from './team-config-validator';
 import { logger } from './logger';
 
 const SERVICE = 'team-generation-service';
@@ -71,6 +76,37 @@ export class TeamGenerationService {
           });
         }
       }
+    }
+
+    const repaired = repairTeamConfig(team);
+    const validation = validateTeamConfig(repaired);
+    if (!validation.ok) {
+      if (llmAttempted) {
+        const fallback = repairTeamConfig(buildTeamConfig(input));
+        const fallbackValidation = validateTeamConfig(fallback);
+        if (!fallbackValidation.ok) {
+          throw new Error(`本地团队校验失败：${formatValidationErrors(fallbackValidation)}`);
+        }
+        warnings.push(
+          `团队校验失败，已回退到需求驱动生成：${formatValidationErrors(validation)}`
+        );
+        team = {
+          ...fallback,
+          generationLog: [
+            ...(fallback.generationLog ?? []),
+            {
+              step: 'LLM 校验回退',
+              detail: `LLM 结果校验失败（${formatValidationErrors(validation)}），重新运行需求驱动生成。`,
+              evidence: formatValidationErrors(validation),
+              outcome: `回退角色：${fallback.agents.map((agent) => agent.name).join('、')}`,
+            } satisfies GenerationLogEntry,
+          ],
+        };
+      } else {
+        throw new Error(`团队校验失败：${formatValidationErrors(validation)}`);
+      }
+    } else {
+      team = repaired;
     }
 
     this.log.info('Team generated', {

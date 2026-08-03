@@ -20,6 +20,8 @@ Agent Team Studio is a cross-platform Electron desktop application for Windows a
 
 The first version generates team configuration and RUP harness files. It does not execute agents or scaffold new source projects.
 
+Generated teams use schema v3 with a stable `kind` on every role. `AGENTS.md` / `CLAUDE.md` are generated as rule and agent maps, not operating manuals; each agent reads only its own `agents/*.md` file.
+
 ## Multi-Agent Collaboration Model
 
 Generated teams always include these roles:

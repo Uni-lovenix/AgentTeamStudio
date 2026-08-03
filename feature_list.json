@@ -144,10 +144,20 @@
       "name": "Core RUP Harness Generation",
       "description": "Writing a team into a project directory also initializes missing core harness files: AGENTS.md, CLAUDE.md, feature_list.json, progress.md, session-handoff.md, init.sh, and docs/PROCESS.md, with RUP phase and iteration tracking.",
       "status": "pass",
-      "evidence": "ProjectWriter creates missing harness files while preserving existing state files; AGENTS.md/CLAUDE.md are initialized by default and existing rule files only receive pointer/collaboration append; project-writer tests cover generated files, preservation, feature_list schema, RUP content, and init.sh executable mode.",
+      "evidence": "ProjectWriter creates missing harness files while preserving existing state files; AGENTS.md/CLAUDE.md are initialized by default and existing rule files only receive pointer append; project-writer tests cover generated files, preservation, feature_list schema, RUP content, and init.sh executable mode.",
       "testedAt": "2026-08-03T14:25:40Z",
       "rupPhase": "construction",
       "iteration": "harness-project-files"
+    },
+    {
+      "id": "role-harness-validation-map",
+      "name": "Role and Harness Validation with Rule Maps",
+      "description": "TeamConfig schema v3 adds stable role kinds; generated AGENTS.md/CLAUDE.md become rule and agent maps; validation and auto-repair ensure AI agents can locate their role files without loading all roles.",
+      "status": "pass",
+      "evidence": "TeamConfigValidator repairs missing required role kinds, duplicate IDs, dangling workflow/RUP references, and validates generated harness on disk; ProjectWriter blocks unfixable configs; AGENTS.md/CLAUDE.md map tests assert no operating-manual sections; schema v3 migration, LLM fallback, validator tests, benchmark, check, build, and cleanup scanner pass.",
+      "testedAt": "2026-08-03T14:50:00Z",
+      "rupPhase": "construction",
+      "iteration": "role-harness-validation-map"
     }
   ]
 }

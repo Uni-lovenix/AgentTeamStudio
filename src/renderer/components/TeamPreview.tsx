@@ -1,6 +1,14 @@
 import { Plus, Trash2 } from 'lucide-react';
-import { AgentRole, TeamConfig } from '../../shared/types';
+import { AgentRole, AgentRoleKind, TeamConfig } from '../../shared/types';
 import { ProcessManagementEditor } from './ProcessManagementEditor';
+
+const ROLE_KIND_LABELS: Record<AgentRoleKind, string> = {
+  planner: '规划者',
+  evaluator: '评估者',
+  developer: '开发者',
+  documentation: '文档与交接',
+  custom: '自定义',
+};
 
 interface TeamPreviewProps {
   team: TeamConfig | null;
@@ -48,6 +56,7 @@ export function TeamPreview({ team, onChange }: TeamPreviewProps) {
   const addAgent = (): void => {
     const agent: AgentRole = {
       id: `role-${Date.now()}`,
+      kind: 'custom',
       name: '新角色',
       mission: '负责补充当前项目的协作能力。',
       responsibilities: [],
@@ -94,6 +103,20 @@ export function TeamPreview({ team, onChange }: TeamPreviewProps) {
                 onChange={(event) => updateAgent(index, { name: event.target.value })}
                 aria-label="角色名称"
               />
+              <select
+                className="role-kind-input"
+                value={agent.kind}
+                onChange={(event) =>
+                  updateAgent(index, { kind: event.target.value as AgentRoleKind })
+                }
+                aria-label="角色语义"
+              >
+                {Object.entries(ROLE_KIND_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
               <button
                 className="icon-button danger"
                 type="button"

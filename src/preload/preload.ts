@@ -5,6 +5,8 @@ import {
   IPC_CHANNELS,
   ProjectDraft,
   SaveSettingsInput,
+  TeamConfig,
+  ValidateTeamResult,
   WriteTeamInput,
 } from '../shared/types';
 
@@ -19,6 +21,8 @@ const api = {
   team: {
     generate: (input: GenerateTeamInput) => ipcRenderer.invoke(IPC_CHANNELS.GENERATE_TEAM, input),
     inspect: (targetDirectory: string) => ipcRenderer.invoke(IPC_CHANNELS.INSPECT_TARGET, targetDirectory),
+    validate: (team: TeamConfig) =>
+      ipcRenderer.invoke(IPC_CHANNELS.VALIDATE_TEAM, team) as Promise<ValidateTeamResult>,
     write: (input: WriteTeamInput) => ipcRenderer.invoke(IPC_CHANNELS.WRITE_TEAM, input),
   },
   dialog: {

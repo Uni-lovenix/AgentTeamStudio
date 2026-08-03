@@ -23,7 +23,10 @@ describe('requirement-analyzer', () => {
     expect(names).toContain('文档与交接负责人');
     expect(team.projectName).toBe('Shop');
     expect(team.techStackHints).toContain('React');
-    expect(team.schemaVersion).toBe(2);
+    expect(team.schemaVersion).toBe(3);
+    expect(team.agents.some((agent) => agent.kind === 'planner')).toBe(true);
+    expect(team.agents.some((agent) => agent.kind === 'evaluator')).toBe(true);
+    expect(team.agents.some((agent) => agent.kind === 'developer')).toBe(true);
     expect(team.processManagement.framework).toBe('rup');
     expect(team.processManagement.phases.map((phase) => phase.name)).toEqual([
       '启动',
@@ -124,7 +127,7 @@ describe('requirement-analyzer', () => {
     expect(developer?.responsibilities).toEqual(['写代码']);
     expect(team.agents.some((agent) => agent.name === '规划者')).toBe(true);
     expect(team.agents.some((agent) => agent.name === '评估者')).toBe(true);
-    expect(team.schemaVersion).toBe(2);
+    expect(team.schemaVersion).toBe(3);
     expect(team.workflow[0].name).toContain('项目启动');
     expect(team.workflow.some((step) => step.name.includes('制定迭代协议'))).toBe(true);
     expect(team.workflow.some((step) => step.name.includes('评估与反馈'))).toBe(true);

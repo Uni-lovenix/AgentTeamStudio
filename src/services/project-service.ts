@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ProjectDraft } from '../shared/types';
 import { PersistenceService } from './persistence-service';
 import { logger } from './logger';
-import { migrateTeamToV2 } from './process-management';
+import { migrateTeamToLatest } from './process-management';
 
 const SERVICE = 'project-service';
 
@@ -15,14 +15,14 @@ export class ProjectService {
     const stored = this.persistence.readJson<ProjectDraft[]>('projects.json') ?? [];
     let migratedCount = 0;
     const projects = stored.map((draft) => {
-      const team = migrateTeamToV2(draft.team);
+      const team = migrateTeamToLatest(draft.team);
       if (team === draft.team) return draft;
       migratedCount += 1;
       return { ...draft, team };
     });
     if (migratedCount > 0) {
       this.persistence.writeJson('projects.json', projects);
-      this.log.info('Migrated project drafts to schema v2', {
+      this.log.info('Migrated project drafts to latest schema', {
         migratedCount,
       });
     }

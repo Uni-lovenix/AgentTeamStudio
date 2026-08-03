@@ -4,6 +4,12 @@ export type GenerationSource = 'local' | 'llm';
 export type LlmProtocol = 'openai' | 'anthropic';
 export type ProcessPhaseId = 'inception' | 'elaboration' | 'construction' | 'transition';
 export type IterationStatus = 'planned' | 'active' | 'completed' | 'blocked';
+export type AgentRoleKind =
+  | 'planner'
+  | 'evaluator'
+  | 'developer'
+  | 'documentation'
+  | 'custom';
 
 export interface WorkflowStep {
   id: string;
@@ -14,6 +20,7 @@ export interface WorkflowStep {
 
 export interface AgentRole {
   id: string;
+  kind: AgentRoleKind;
   name: string;
   mission: string;
   responsibilities: string[];
@@ -75,7 +82,7 @@ export interface GenerationLogEntry {
 }
 
 export interface TeamConfig {
-  schemaVersion: 2;
+  schemaVersion: 3;
   projectName: string;
   requirement: string;
   techStackHints: string[];
@@ -123,6 +130,24 @@ export interface WriteTeamResult {
   createdFiles: string[];
   overwrittenFiles: string[];
   appendedFiles: string[];
+}
+
+export interface TeamValidationIssue {
+  severity: 'error' | 'warning';
+  path: string;
+  message: string;
+}
+
+export interface TeamValidationResult {
+  ok: boolean;
+  errors: TeamValidationIssue[];
+  warnings: TeamValidationIssue[];
+  repairs: string[];
+}
+
+export interface ValidateTeamResult {
+  team: TeamConfig;
+  validation: TeamValidationResult;
 }
 
 export interface TargetInspection {
@@ -177,6 +202,7 @@ export const IPC_CHANNELS = {
   GENERATE_TEAM: 'team:generate',
   INSPECT_TARGET: 'team:inspect',
   WRITE_TEAM: 'team:write',
+  VALIDATE_TEAM: 'team:validate',
   SELECT_DIRECTORY: 'dialog:select-directory',
   GET_SETTINGS: 'settings:get',
   SAVE_SETTINGS: 'settings:save',

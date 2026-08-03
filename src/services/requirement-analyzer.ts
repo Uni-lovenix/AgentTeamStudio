@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import {
+  AgentRoleKind,
   AgentRole,
   EngineeringConventions,
   GenerationLogEntry,
@@ -10,6 +11,7 @@ import {
   buildProcessManagement,
   normalizeProcessManagement,
 } from './process-management';
+import { inferAgentRoleKind, isAgentRoleKind } from './agent-role-kind';
 
 export interface RequirementAnalysisContext {
   projectName?: string;
@@ -18,6 +20,7 @@ export interface RequirementAnalysisContext {
 }
 
 function createRole(
+  kind: AgentRoleKind,
   name: string,
   mission: string,
   responsibilities: string[],
@@ -29,6 +32,7 @@ function createRole(
 ): AgentRole {
   return {
     id: uuidv4(),
+    kind,
     name,
     mission,
     responsibilities,
@@ -410,6 +414,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
 
   addRole(
     createRole(
+      'planner',
       '规划者',
       '把需求拆解为可执行任务，制定方案、流程和迭代协议，并协调开发者完成交付。',
       [
@@ -434,6 +439,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
 
   addRole(
     createRole(
+      'evaluator',
       '评估者',
       '依据迭代协议和退出标准评估开发者的交付结果，发现问题反馈给开发者修改，并确认闭环。',
       [
@@ -480,6 +486,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
     ];
     addRole(
       createRole(
+        'developer',
         spec.name,
         spec.mission,
         responsibilities,
@@ -492,9 +499,10 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
     );
   }
 
-  if (!roles.some((role) => role.name.includes('开发者'))) {
+  if (!roles.some((role) => role.kind === 'developer')) {
     addRole(
       createRole(
+        'developer',
         '开发者',
         '按规划者制定的迭代协议完成开发、测试和交付物，并根据评估者反馈修复问题。',
         [
@@ -519,6 +527,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
 
   addRole(
     createRole(
+      'documentation',
       '文档与交接负责人',
       '把需求、决策、接口和运行方式沉淀成可持续交接的文档。',
       [
@@ -617,7 +626,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
   );
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     projectName,
     requirement,
     techStackHints,
@@ -641,9 +650,12 @@ function asStringArray(value: unknown, fallback: string[]): string[] {
 
 function normalizeRole(raw: unknown, index: number): AgentRole {
   const value = (raw ?? {}) as Record<string, unknown>;
+  const name =
+    typeof value.name === 'string' && value.name ? value.name : `角色 ${index + 1}`;
   return {
     id: typeof value.id === 'string' && value.id ? value.id : `role-${index + 1}`,
-    name: typeof value.name === 'string' && value.name ? value.name : `角色 ${index + 1}`,
+    kind: isAgentRoleKind(value.kind) ? value.kind : inferAgentRoleKind(name),
+    name,
     mission: typeof value.mission === 'string' ? value.mission : '负责对应的项目职责。',
     responsibilities: asStringArray(value.responsibilities, []),
     skills: asStringArray(value.skills, []),
@@ -654,7 +666,7 @@ function normalizeRole(raw: unknown, index: number): AgentRole {
   };
 }
 
-function dedupeAgentIds(agents: AgentRole[]): AgentRole[] {
+export function dedupeAgentIds(agents: AgentRole[]): AgentRole[] {
   const usedIds = new Set<string>();
   return agents.map((agent, index) => {
     let id = agent.id;
@@ -666,8 +678,8 @@ function dedupeAgentIds(agents: AgentRole[]): AgentRole[] {
   });
 }
 
-function fallbackRole(fallback: TeamConfig, name: string): AgentRole {
-  return fallback.agents.find((agent) => agent.name === name) ?? fallback.agents[0];
+function fallbackRoleByKind(fallback: TeamConfig, kind: AgentRoleKind): AgentRole {
+  return fallback.agents.find((agent) => agent.kind === kind) ?? fallback.agents[0];
 }
 
 function enforceMandatoryRoles(
@@ -676,17 +688,17 @@ function enforceMandatoryRoles(
 ): { agents: AgentRole[]; addedRoleNames: string[] } {
   const result = [...agents];
   const addedRoleNames: string[] = [];
-  const addIfMissing = (name: string): void => {
-    if (result.some((agent) => agent.name === name)) return;
-    result.unshift(fallbackRole(fallback, name));
-    addedRoleNames.push(name);
+  const addIfMissing = (kind: AgentRoleKind): void => {
+    if (result.some((agent) => agent.kind === kind)) return;
+    const role = fallbackRoleByKind(fallback, kind);
+    result.unshift(role);
+    addedRoleNames.push(role.name);
   };
 
-  addIfMissing('规划者');
-  addIfMissing('评估者');
-  if (!result.some((agent) => agent.name.includes('开发者'))) {
-    const developer =
-      fallback.agents.find((agent) => agent.name.includes('开发者')) ?? fallback.agents[0];
+  addIfMissing('planner');
+  addIfMissing('evaluator');
+  if (!result.some((agent) => agent.kind === 'developer')) {
+    const developer = fallbackRoleByKind(fallback, 'developer');
     result.push(developer);
     addedRoleNames.push(developer.name);
   }
@@ -694,7 +706,7 @@ function enforceMandatoryRoles(
   return { agents: result, addedRoleNames };
 }
 
-const RUP_WORKFLOW_STEPS: Array<Omit<WorkflowStep, 'ownerRoleId'>> = [
+export const RUP_WORKFLOW_STEPS: Array<Omit<WorkflowStep, 'ownerRoleId'>> = [
   {
     id: 'project-start',
     name: '项目启动',
@@ -732,14 +744,14 @@ const RUP_WORKFLOW_STEPS: Array<Omit<WorkflowStep, 'ownerRoleId'>> = [
   },
 ];
 
-function ensureRupWorkflow(steps: WorkflowStep[], agents: AgentRole[]): WorkflowStep[] {
-  const roleIdByName = (name: string): string =>
-    agents.find((agent) => agent.name === name)?.id ?? agents[0]?.id ?? '';
-  const plannerId = roleIdByName('规划者');
-  const evaluatorId = roleIdByName('评估者');
-  const docsId = roleIdByName('文档与交接负责人') || evaluatorId;
+export function ensureRupWorkflow(steps: WorkflowStep[], agents: AgentRole[]): WorkflowStep[] {
+  const roleIdByKind = (kind: AgentRoleKind): string =>
+    agents.find((agent) => agent.kind === kind)?.id ?? agents[0]?.id ?? '';
+  const plannerId = roleIdByKind('planner');
+  const evaluatorId = roleIdByKind('evaluator');
+  const docsId = roleIdByKind('documentation') || evaluatorId;
   const developerId =
-    agents.find((agent) => agent.name.includes('开发者'))?.id ?? agents[0]?.id ?? '';
+    agents.find((agent) => agent.kind === 'developer')?.id ?? agents[0]?.id ?? '';
 
   const result = steps.map((step) => ({
     ...step,
@@ -845,7 +857,7 @@ export function normalizeTeamConfig(
   const rawConventions = (value.conventions ?? {}) as Record<string, unknown>;
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     projectName:
       typeof value.projectName === 'string' && value.projectName
         ? value.projectName

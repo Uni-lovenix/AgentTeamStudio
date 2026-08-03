@@ -241,6 +241,24 @@ export function App() {
     setNotice('');
     setBusy(true);
     try {
+      const validationResult = await window.agentTeamStudio.team.validate(team);
+      if (!validationResult.validation.ok) {
+        setError(
+          `团队校验失败：\n${validationResult.validation.errors
+            .map((item) => `${item.path}: ${item.message}`)
+            .join('\n')}`
+        );
+        return;
+      }
+      const safeTeam = validationResult.team;
+      const validationNotice = [
+        ...(validationResult.validation.repairs.length > 0
+          ? [`已自动修复：${validationResult.validation.repairs.join('；')}`]
+          : []),
+        ...(validationResult.validation.warnings.length > 0
+          ? [`校验提醒：${validationResult.validation.warnings.map((item) => item.message).join('；')}`]
+          : []),
+      ].join('；');
       const inspection = await window.agentTeamStudio.team.inspect(targetPath);
       if (!inspection.directoryExists) {
         throw new Error('目标目录不存在');
@@ -252,19 +270,28 @@ export function App() {
         if (!confirmed) return;
       }
       const result = await window.agentTeamStudio.team.write({
-        team,
+        team: safeTeam,
         targetDirectory: targetPath,
         overwrite: inspection.existingFiles.length > 0,
       });
       const changedFiles = [...result.createdFiles, ...result.overwrittenFiles];
+      const teamFileCount = changedFiles.filter(
+        (file) =>
+          file === 'AGENTS.team.md' || file === 'agents.json' || file.startsWith('agents/')
+      ).length;
+      const harnessFileCount = changedFiles.length - teamFileCount;
+      const writeSummary =
+        harnessFileCount > 0
+          ? `已写入 ${changedFiles.length} 个文件（含 ${harnessFileCount} 个 harness 文件）`
+          : `已写入 ${changedFiles.join('、')}`;
       const pointerNotice =
         result.appendedFiles.length > 0
           ? `；${result.appendedFiles.join('、')} 已追加规则入口`
           : '';
       setNotice(
-        `已写入 ${changedFiles.join('、')} 到 ${result.targetDirectory}${pointerNotice}`
+        `${writeSummary} 到 ${result.targetDirectory}${pointerNotice}${validationNotice ? `；${validationNotice}` : ''}`
       );
-      await saveCurrentDraft(team);
+      await saveCurrentDraft(safeTeam);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

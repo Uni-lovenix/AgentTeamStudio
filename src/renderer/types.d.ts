@@ -8,6 +8,7 @@ import type {
   SaveSettingsInput,
   SettingsSnapshot,
   TargetInspection,
+  ValidateTeamResult,
   WriteTeamInput,
   WriteTeamResult,
 } from '../shared/types';
@@ -25,6 +26,7 @@ declare global {
       team: {
         generate: (input: GenerateTeamInput) => Promise<GenerateTeamResult>;
         inspect: (targetDirectory: string) => Promise<TargetInspection>;
+        validate: (team: TeamConfig) => Promise<ValidateTeamResult>;
         write: (input: WriteTeamInput) => Promise<WriteTeamResult>;
       };
       dialog: {

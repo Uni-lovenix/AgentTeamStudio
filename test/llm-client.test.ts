@@ -2,12 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LlmClient } from '../src/services/llm-client';
 
 const validPayload = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   projectName: 'LLM Project',
   workflow: [],
   agents: [
     {
       id: 'a1',
+      kind: 'developer',
       name: '开发者',
       mission: '实现功能',
       responsibilities: ['写代码'],
@@ -51,6 +52,7 @@ describe('llm-client', () => {
     );
 
     expect(team.projectName).toBe('LLM Project');
+    expect(team.schemaVersion).toBe(3);
     expect(team.agents.some((agent) => agent.name === '开发者')).toBe(true);
     expect(team.agents.some((agent) => agent.name === '规划者')).toBe(true);
     expect(team.agents.some((agent) => agent.name === '评估者')).toBe(true);

@@ -7,9 +7,18 @@
 - 标准验证路径：`npm run check`、`npm test`、`npm run build`
 - 当前最高优先级未完成功能：无阻塞项
 - 当前 blocker：无
-- 当前 RUP 阶段：构建（Construction），本轮迭代：`harness-project-files`
+- 当前 RUP 阶段：构建（Construction），本轮迭代：`role-harness-validation-map`
 
 ## 会话记录
+
+### Session 2026-08-03 角色/Harness 校验与规则地图
+
+- 日期：2026-08-03
+- 迭代目标：校验生成角色和 harness 的完整性与逻辑性，保证 AI 能通过规则地图找到对应智能体，并让 `AGENTS.md` / `CLAUDE.md` 成为地图而不是操作手册。
+- 已完成：`TeamConfig` 升到 schema v3，角色新增稳定 `kind`；新增 `TeamConfigValidator` 自动修复必需角色、重复 ID、悬空引用和 RUP 引用，无法修复时阻止导出；写入前新增 `team:validate` IPC；生成后的 `AGENTS.md` / `CLAUDE.md` 只包含规则地图、智能体地图和按需读取规则；已有规则文件只追加指向 `AGENTS.team.md` 的入口；benchmark 与 tests 覆盖落盘 harness 校验。
+- 运行过的验证：`npm run check`、`npm test`（34 个用例）、`npm run build`、`bash scripts/benchmark.sh`、`bash scripts/cleanup-scanner.sh`
+- 更新过的文件或工件：`src/shared/types.ts`、`src/services/agent-role-kind.ts`、`src/services/team-config-validator.ts`、`src/services/harness-templates.ts`、`src/services/project-writer.ts`、`src/services/requirement-analyzer.ts`、`src/services/process-management.ts`、`src/services/project-service.ts`、`src/services/llm-client.ts`、`src/services/team-generation-service.ts`、IPC/preload/App/TeamPreview、tests、benchmark、README、docs、`feature_list.json`
+- 已知风险或未解决问题：旧版本已生成的 `AGENTS.md` / `CLAUDE.md` 若已存在不会被重写，只会追加指向 `AGENTS.team.md` 的入口；如需新地图需要在新目录或人工替换旧规则文件。
 
 ### Session 2026-08-03 核心 RUP Harness 生成
 

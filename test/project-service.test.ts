@@ -22,7 +22,7 @@ afterEach(() => {
 });
 
 describe('project-service', () => {
-  it('migrates persisted v1 drafts to schema v2 with RUP process management', () => {
+  it('migrates persisted v1 drafts to schema v3 with role kinds and RUP process management', () => {
     const dataDir = path.join(makeTempDir(), 'data');
     const persistence = new PersistenceService(dataDir);
     const modern = buildTeamConfig({
@@ -57,7 +57,8 @@ describe('project-service', () => {
     const service = new ProjectService(persistence);
     const projects = service.list();
 
-    expect(projects[0].team?.schemaVersion).toBe(2);
+    expect(projects[0].team?.schemaVersion).toBe(3);
+    expect(projects[0].team?.agents.every((agent) => agent.kind)).toBe(true);
     expect(projects[0].team?.processManagement.framework).toBe('rup');
     expect(projects[0].team?.processManagement.phases).toHaveLength(4);
     expect(projects[0].team?.workflow[0].name).toBe('制定迭代协议');
@@ -65,7 +66,7 @@ describe('project-service', () => {
     expect(projects[0].team?.workflow.some((step) => step.name.includes('冲刺'))).toBe(false);
 
     const stored = persistence.readJson<ProjectDraft[]>('projects.json') ?? [];
-    expect(stored[0].team?.schemaVersion).toBe(2);
+    expect(stored[0].team?.schemaVersion).toBe(3);
     expect(stored[0].team?.processManagement).toBeDefined();
   });
 });

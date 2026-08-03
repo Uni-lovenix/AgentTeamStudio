@@ -8,6 +8,7 @@ import {
   TeamConfig,
   WorkflowStep,
 } from '../shared/types';
+import { inferAgentRoleKind, isAgentRoleKind } from './agent-role-kind';
 
 const PHASE_IDS: ProcessPhaseId[] = [
   'inception',
@@ -366,6 +367,7 @@ function migrateWorkflowStep(step: WorkflowStep): WorkflowStep {
 function migrateAgentRole(role: AgentRole): AgentRole {
   return {
     ...role,
+    kind: isAgentRoleKind(role.kind) ? role.kind : inferAgentRoleKind(role.name),
     mission: replaceSprint(role.mission),
     responsibilities: role.responsibilities.map(replaceSprint),
     skills: role.skills.map(replaceSprint),
@@ -376,13 +378,17 @@ function migrateAgentRole(role: AgentRole): AgentRole {
   };
 }
 
-export function migrateTeamToV2(team: TeamConfig | null): TeamConfig | null {
+export function migrateTeamToLatest(team: TeamConfig | null): TeamConfig | null {
   if (!team) return null;
-  if (team.schemaVersion === 2 && team.processManagement) return team;
+  if (team.schemaVersion === 3 && team.processManagement) return team;
 
-  const legacy = team as TeamConfig & {
-    schemaVersion: 1 | 2;
+  const legacy = team as unknown as {
+    schemaVersion?: number;
     processManagement?: unknown;
+    agents?: AgentRole[];
+    workflow?: WorkflowStep[];
+    requirement?: string;
+    techStackHints?: string[];
   };
   const agents = Array.isArray(legacy.agents)
     ? legacy.agents.map(migrateAgentRole)
@@ -394,8 +400,8 @@ export function migrateTeamToV2(team: TeamConfig | null): TeamConfig | null {
   );
 
   return {
-    ...legacy,
-    schemaVersion: 2,
+    ...team,
+    schemaVersion: 3,
     workflow: Array.isArray(legacy.workflow)
       ? legacy.workflow.map(migrateWorkflowStep)
       : [],
