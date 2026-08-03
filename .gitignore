@@ -5,9 +5,4 @@ coverage/
 .DS_Store
 *.log
 
-# Local agent handoff and state files, not intended for the public repository.
-AGENTS.md
-claude-progress.md
-clean-state-checklist.md
-feature_list.json
-session-handoff.md
+# Local agent harness files are tracked so fresh clones include the standard startup path.

@@ -1,0 +1,153 @@
+{
+  "project": "alpha",
+  "description": "Agent Team Studio: cross-platform desktop app for generating multi-agent team configuration from project requirements",
+  "last_updated": "2026-08-03",
+  "status_legend": {
+    "not_started": "功能还没开始做。",
+    "in_progress": "这个功能是当前唯一正在进行的任务。",
+    "blocked": "还在规划中。",
+    "pass": "要求的验证已经通过，并且证据已经记录。"
+  },
+  "features": [
+    {
+      "id": "window-launch",
+      "name": "Window Launch",
+      "description": "Electron app opens a secure BrowserWindow with preload bridge and Chinese working UI.",
+      "status": "pass",
+      "evidence": "Preload is bundled with esbuild for Electron sandbox; npm run dev launched Electron, 14 IPC handlers registered, BrowserWindow created, and no preload module error appeared.",
+      "testedAt": "2026-08-01T05:40:00Z"
+    },
+    {
+      "id": "project-draft-crud",
+      "name": "Project Draft CRUD",
+      "description": "Local project drafts can be created, saved, selected, and deleted.",
+      "status": "pass",
+      "evidence": "ProjectService list/create/get/save/delete implemented; PersistenceService tests pass.",
+      "testedAt": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "requirement-analysis",
+      "name": "Requirement Analysis",
+      "description": "Requirement text is validated and analyzed for goals, constraints, and the responsibility areas needed to complete it.",
+      "status": "pass",
+      "evidence": "RequirementAnalyzer maps requirement signals to responsibility-area roles; Vitest coverage passes.",
+      "testedAt": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "local-team-generation",
+      "name": "Local Team Generation",
+      "description": "Local generation always includes Planner and Evaluator plus one or more Developer roles, derives responsibilities from the requirement instead of splitting work by implementation function, and creates an iteration-protocol workflow.",
+      "status": "pass",
+      "evidence": "buildTeamConfig generates Planner, Evaluator, responsibility-driven Developer roles such as account/permissions and transaction/payment, plus RUP phases, iterations, and workflow steps for iteration protocol, development, evaluation/feedback, and acceptance; tests confirm mandatory roles and no frontend/backend function-split roles.",
+      "testedAt": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "mandatory-iteration-workflow",
+      "name": "Mandatory Iteration Collaboration Workflow",
+      "description": "Generated teams always contain Planner and Evaluator plus at least one Developer; every iteration starts with an iteration protocol, Developers build against it, Evaluator validates it against phase exit criteria and sends issues back to the responsible Developer.",
+      "status": "pass",
+      "evidence": "Local generation emits Planner/Evaluator/Developer roles and iteration/evaluation workflow steps; normalizeTeamConfig reinserts missing mandatory roles and RUP workflow steps for LLM results; ProjectWriter writes iteration collaboration rules to AGENTS.team.md, each agents/*.md file, and appended AGENTS.md/CLAUDE.md entries; tests cover local, LLM, and export paths.",
+      "testedAt": "2026-08-03T14:12:00Z"
+    },
+    {
+      "id": "rup-process-management",
+      "name": "RUP Process Management",
+      "description": "TeamConfig schema v2 adds structured RUP process management with four phases, milestones, iterations, and exit criteria; old v1 drafts and sprint pointers migrate to the iteration protocol.",
+      "status": "pass",
+      "evidence": "buildProcessManagement generates Inception/Elaboration/Construction/Transition phases and per-responsibility construction iterations; normalizeTeamConfig fills missing processManagement; ProjectService migrates v1 drafts; ProjectWriter migrates legacy sprint pointers; tests and benchmark validate schema v2; npm run dev launched Electron with BrowserWindow created and local generation observed.",
+      "testedAt": "2026-08-03T14:00:00Z",
+      "rupPhase": "construction",
+      "iteration": "rup-process-model"
+    },
+    {
+      "id": "llm-team-generation",
+      "name": "Optional LLM Generation",
+      "description": "OpenAI-compatible or Anthropic-compatible LLM can generate and normalize team JSON with local fallback.",
+      "status": "pass",
+      "evidence": "LlmClient routes /chat/completions and /v1/messages; settings service persists protocol and encrypts API key; tests cover OpenAI, Anthropic, network failures, and local fallback.",
+      "testedAt": "2026-08-01T05:40:00Z"
+    },
+    {
+      "id": "team-preview-editing",
+      "name": "Team Preview and Editing",
+      "description": "Users can edit roles, workflow, RUP phases/iterations, and conventions before export.",
+      "status": "pass",
+      "evidence": "TeamPreview renders editable role cards, workflow rows, ProcessManagementEditor phase/iteration fields, and convention fields.",
+      "testedAt": "2026-08-03T14:00:00Z"
+    },
+    {
+      "id": "generation-decision-log",
+      "name": "Generation Decision Log",
+      "description": "The UI shows why each responsibility area and role was generated.",
+      "status": "pass",
+      "evidence": "TeamConfig includes generationLog entries with evidence/role/outcome; local, LLM, and fallback paths record concrete signal-to-role decisions; GenerationLog renders the process chain in the UI; tests assert role generation and LLM fallback entries.",
+      "testedAt": "2026-08-01T10:02:00Z"
+    },
+    {
+      "id": "export-agents-config",
+      "name": "Export AGENTS.team.md and agents.json",
+      "description": "Generated team config is atomically written into a selected existing project directory as AGENTS.team.md, agents.json, and one Markdown file per agent under agents/, without overwriting existing AGENTS.md or CLAUDE.md rules.",
+      "status": "pass",
+      "evidence": "ProjectWriter tests cover AGENTS.team.md/agents.json create, per-agent agents/*.md create, AGENTS.team.md routing without duplicated role sections, overwrite confirmation, pointer append to AGENTS.md and/or CLAUDE.md without content loss, idempotent pointer append when both exist, and missing directory errors.",
+      "testedAt": "2026-08-01T07:22:00Z"
+    },
+    {
+      "id": "settings-secret-storage",
+      "name": "LLM Settings and Secret Storage",
+      "description": "LLM provider protocol, settings, and encrypted API key storage are managed from the app.",
+      "status": "pass",
+      "evidence": "SettingsService tests confirm protocol persistence/migration, encrypted storage, snapshot redaction, and key clearing.",
+      "testedAt": "2026-08-01T05:40:00Z"
+    },
+    {
+      "id": "structured-logging",
+      "name": "Structured Logging",
+      "description": "Services and IPC handlers emit structured JSON logs.",
+      "status": "pass",
+      "evidence": "Logger and service logging points implemented; log output observed during tests.",
+      "testedAt": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "clean-state-reset",
+      "name": "Clean State Reset",
+      "description": "Reset clears local app data without modifying target project files.",
+      "status": "pass",
+      "evidence": "app:reset IPC calls persistence.resetAll and settingsService.reset; UI reset button implemented.",
+      "testedAt": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "benchmark-scripts",
+      "name": "Benchmark Scripts",
+      "description": "Benchmark measures local analysis, export, and validation performance.",
+      "status": "pass",
+      "evidence": "scripts/benchmark.sh and benchmark.cjs implemented with numeric targets.",
+      "testedAt": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "cleanup-scanner",
+      "name": "Cleanup Scanner",
+      "description": "Scanner checks required harness files and stale artifacts.",
+      "status": "pass",
+      "evidence": "scripts/cleanup-scanner.sh implemented and now checks for unbundled preload plus missing service/shared build outputs.",
+      "testedAt": "2026-08-01T05:40:00Z"
+    },
+    {
+      "id": "cross-platform-packaging",
+      "name": "Cross-Platform Packaging",
+      "description": "electron-builder configuration supports macOS and Windows targets; dist is generated locally and not tracked by Git.",
+      "status": "pass",
+      "evidence": "npm run dist:mac and npm run dist:win locally build mac zip and Windows installers; dist/ is ignored and untracked; both asar archives include dist/services and dist/shared, and packaged preload only requires electron.",
+      "testedAt": "2026-08-01T05:45:00Z"
+    },
+    {
+      "id": "harness-project-files",
+      "name": "Core RUP Harness Generation",
+      "description": "Writing a team into a project directory also initializes missing core harness files: AGENTS.md, CLAUDE.md, feature_list.json, progress.md, session-handoff.md, init.sh, and docs/PROCESS.md, with RUP phase and iteration tracking.",
+      "status": "pass",
+      "evidence": "ProjectWriter creates missing harness files while preserving existing state files; AGENTS.md/CLAUDE.md are initialized by default and existing rule files only receive pointer/collaboration append; project-writer tests cover generated files, preservation, feature_list schema, RUP content, and init.sh executable mode.",
+      "testedAt": "2026-08-03T14:25:40Z",
+      "rupPhase": "construction",
+      "iteration": "harness-project-files"
+    }
+  ]
+}
