@@ -2,6 +2,8 @@
 
 export type GenerationSource = 'local' | 'llm';
 export type LlmProtocol = 'openai' | 'anthropic';
+export type ProcessPhaseId = 'inception' | 'elaboration' | 'construction' | 'transition';
+export type IterationStatus = 'planned' | 'active' | 'completed' | 'blocked';
 
 export interface WorkflowStep {
   id: string;
@@ -30,6 +32,40 @@ export interface EngineeringConventions {
   documentation: string;
 }
 
+export interface RupIteration {
+  id: string;
+  phaseId: ProcessPhaseId;
+  name: string;
+  objective: string;
+  scope: string[];
+  plan: string[];
+  exitCriteria: string[];
+  deliverables: string[];
+  ownerRoleId: string;
+  feedbackTargetRoleId: string;
+  status: IterationStatus;
+}
+
+export interface RupPhase {
+  id: ProcessPhaseId;
+  name: string;
+  purpose: string;
+  goals: string[];
+  deliverables: string[];
+  milestone: string;
+  exitCriteria: string[];
+  ownerRoleId: string;
+  iterationIds: string[];
+}
+
+export interface ProcessManagement {
+  framework: 'rup';
+  currentPhaseId: ProcessPhaseId;
+  phases: RupPhase[];
+  iterations: RupIteration[];
+  rules: string[];
+}
+
 export interface GenerationLogEntry {
   step: string;
   detail: string;
@@ -39,7 +75,7 @@ export interface GenerationLogEntry {
 }
 
 export interface TeamConfig {
-  schemaVersion: 1;
+  schemaVersion: 2;
   projectName: string;
   requirement: string;
   techStackHints: string[];
@@ -47,6 +83,7 @@ export interface TeamConfig {
   createdAt: string;
   workflow: WorkflowStep[];
   agents: AgentRole[];
+  processManagement: ProcessManagement;
   conventions: EngineeringConventions;
   generationLog?: GenerationLogEntry[];
 }

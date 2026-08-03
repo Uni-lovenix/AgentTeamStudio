@@ -42,8 +42,13 @@ const roleNames = analyze.result[0].agents.map((agent) => agent.name);
 const hasPlanner = roleNames.includes('规划者');
 const hasEvaluator = roleNames.includes('评估者');
 const hasDeveloper = roleNames.some((name) => name.includes('开发者'));
-const hasSprintWorkflow = analyze.result[0].workflow.some((step) =>
-  step.name.includes('冲刺')
+const hasProcessManagement = Boolean(analyze.result[0].processManagement);
+const hasFourPhases = analyze.result[0].processManagement?.phases?.length === 4;
+const hasIterationWorkflow = analyze.result[0].workflow.some((step) =>
+  step.name.includes('迭代协议')
+);
+const hasStartWorkflow = analyze.result[0].workflow.some((step) =>
+  step.name.includes('项目启动')
 );
 const hasEvaluationWorkflow = analyze.result[0].workflow.some((step) =>
   step.name.includes('评估') || step.name.includes('校验') || step.name.includes('验收')
@@ -53,7 +58,10 @@ const validatePass =
   hasPlanner &&
   hasEvaluator &&
   hasDeveloper &&
-  hasSprintWorkflow &&
+  hasProcessManagement &&
+  hasFourPhases &&
+  hasIterationWorkflow &&
+  hasStartWorkflow &&
   hasEvaluationWorkflow;
 const analyzePass = analyzeAvgMs < 500;
 const writePass = writeAvgMs < 100;
@@ -61,6 +69,6 @@ const passed = [validatePass, analyzePass, writePass].every(Boolean);
 
 console.log(`[analyze] 5 requirements x5 runs: ${analyze.durationMs.toFixed(1)}ms (${analyzeAvgMs.toFixed(1)}ms avg) ${analyzePass ? 'PASS' : 'FAIL'}`);
 console.log(`[write]   10 writes: ${write.durationMs.toFixed(1)}ms (${writeAvgMs.toFixed(1)}ms avg) ${writePass ? 'PASS' : 'FAIL'}`);
-console.log(`[validate] generated agents: ${agentCount}, planner=${hasPlanner}, evaluator=${hasEvaluator}, developer=${hasDeveloper}, sprint=${hasSprintWorkflow}, evaluation=${hasEvaluationWorkflow} ${validatePass ? 'PASS' : 'FAIL'}`);
+console.log(`[validate] generated agents: ${agentCount}, planner=${hasPlanner}, evaluator=${hasEvaluator}, developer=${hasDeveloper}, rup=${hasProcessManagement}/${hasFourPhases}, iteration=${hasIterationWorkflow}, start=${hasStartWorkflow}, evaluation=${hasEvaluationWorkflow} ${validatePass ? 'PASS' : 'FAIL'}`);
 console.log(`=== Summary: ${passed ? '3/3 tasks passed' : 'benchmark failed'} ===`);
 process.exit(passed ? 0 : 1);

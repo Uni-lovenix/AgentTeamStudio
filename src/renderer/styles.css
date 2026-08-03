@@ -518,6 +518,100 @@ button:disabled {
   margin-bottom: 8px;
 }
 
+.process-management-editor {
+  margin-top: 18px;
+  border-top: 1px solid var(--line);
+  padding-top: 4px;
+}
+
+.rup-phase-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rup-phase-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fcfdfd;
+}
+
+.rup-phase-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rup-phase-head code {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.rup-iteration-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.rup-iteration-row {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.rup-iteration-row summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.rup-iteration-row summary span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.rup-iteration-row summary .iteration-status {
+  margin-left: auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.iteration-status.planned {
+  background: #eef2f6;
+  color: #475467;
+}
+
+.iteration-status.active {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.iteration-status.completed {
+  background: #e7f4eb;
+  color: #15803d;
+}
+
+.iteration-status.blocked {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.rup-iteration-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+
 .conventions-editor {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -669,7 +763,8 @@ button:disabled {
   }
 
   .role-list,
-  .conventions-editor {
+  .conventions-editor,
+  .rup-phase-grid {
     grid-template-columns: 1fr;
   }
 }

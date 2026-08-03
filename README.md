@@ -4,10 +4,10 @@ Agent Team Studio 是一个跨平台桌面应用，支持 Windows 和 macOS。�
 
 生成的配置：
 
-- `AGENTS.team.md`：团队级规则、智能体路由、协作流程和工程约定；不重复每个角色的完整明细。
-- `agents.json`：机器可读的团队配置，schema version 为 1。
+- `AGENTS.team.md`：团队级规则、RUP 过程管理、智能体路由、协作流程和工程约定；不重复每个角色的完整明细。
+- `agents.json`：机器可读的团队配置，schema version 为 2。
 - `agents/`：每个智能体一个独立 Markdown 文件，包含该角色的使命、职责、技能、工具、交付物、协作规则和协作流程。
-- 如果目标目录已存在 `AGENTS.md` 或 `CLAUDE.md`，应用向这些文件追加规则入口和冲刺协议协作流程，不会覆盖原有规则。
+- 如果目标目录已存在 `AGENTS.md` 或 `CLAUDE.md`，应用向这些文件追加规则入口和迭代协议协作流程，不会覆盖原有规则。
 
 当前版本只负责团队配置的生成和导出，不执行多智能体工作流。
 
@@ -40,9 +40,11 @@ shasum -a 256 AgentTeamStudio-0.1.0-mac-arm64.zip AgentTeamStudio-0.1.0-win-x64.
 
 - 输入项目名称、需求描述和技术栈提示。
 - 本地分析从需求中识别必须完成的责任区块，为每个开发者角色生成使命和具体职责，而不是按前端、后端等实现功能拆分。
-- 每个团队都强制包含“规划者”和“评估者”：规划者负责任务分解、方案、流程协调和冲刺协议；评估者按冲刺协议校验结果并反馈给开发者修改。
-- 每个责任区块对应一个开发者角色，开发者可以有多个；每项任务开始前都会生成冲刺协议，开发、校验、反馈修改构成完整闭环。
-- 可选 OpenAI 兼容或 Anthropic/MiniMax 兼容 LLM 生成更贴合需求的团队配置，LLM 结果同样会补齐必需角色和冲刺流程。
+- 每个团队都强制包含“规划者”和“评估者”：规划者负责任务分解、方案、流程协调和迭代协议；评估者按迭代协议校验结果并反馈给开发者修改。
+- 每个责任区块对应一个开发者角色，开发者可以有多个；每个迭代开始前都会生成迭代协议，开发、校验、反馈修改构成完整闭环。
+- 团队过程管理采用轻量 RUP：启动、细化、构建、移交四个阶段，每个阶段有里程碑和退出标准，每个迭代有目标、范围、计划、交付物、退出标准和反馈目标。
+- 不新增架构师、测试、部署或项目经理等 RUP 专属角色；过程职责由规划者、评估者、开发者和文档交接负责人承担。
+- 可选 OpenAI 兼容或 Anthropic/MiniMax 兼容 LLM 生成更贴合需求的团队配置，LLM 结果同样会补齐必需角色、RUP 过程和工作流。
 - 编辑角色名称、使命、职责、技能、工具、交付物、依赖和通知关系。
 - 编辑协作流程和分支、提交、PR、测试、文档约定。
 - 实际生成过程日志展示“依据什么信号、生成哪个角色、得到什么结果”，而不是只罗列步骤名称。
@@ -90,7 +92,7 @@ bash init.sh
 6. 点击“选择项目目录”，指定一个已有的项目目录。
 7. 点击“写入项目目录”，应用会生成 `AGENTS.team.md`、`agents.json`，以及 `agents/` 下每个智能体一个 Markdown 文件。
 8. 如果目录中已存在这些团队文件或 `agents/` 目录，应用会要求确认后才覆盖。
-9. 如果目录中已存在 `AGENTS.md` 或 `CLAUDE.md`，应用会向存在的规则文件追加“使用智能体规则在 AGENTS.team.md 文件”和冲刺协议协作流程，并保留原内容。
+9. 如果目录中已存在 `AGENTS.md` 或 `CLAUDE.md`，应用会向存在的规则文件追加“使用智能体规则在 AGENTS.team.md 文件”和迭代协议协作流程，并保留原内容。
 
 重置按钮只清除应用本地的项目草稿和设置，不会删除或修改目标项目目录中的文件。
 
@@ -114,10 +116,10 @@ LLM 返回结果会经过结构校验。如果请求失败、超时或返回格�
 
 导出后，目标项目目录中可能包含：
 
-- `AGENTS.team.md`：团队级规则和智能体路由，协作流程与工程约定；每个角色的完整明细只存在于 `agents/*.md`。
-- `agents.json`：完整的机器可读团队配置。
+- `AGENTS.team.md`：团队级规则、RUP 过程管理、智能体路由、协作流程与工程约定；每个角色的完整明细只存在于 `agents/*.md`。
+- `agents.json`：完整的机器可读团队配置，schema version 为 2。
 - `agents/`：每个智能体一个独立 Markdown 文件，包含该角色的使命、职责、技能、工具、交付物、协作规则和协作流程。
-- `AGENTS.md` / `CLAUDE.md`：项目原有规则文件；应用不会覆盖它们，只会在这些文件存在时追加指向 `AGENTS.team.md` 的规则入口和冲刺协议协作流程。
+- `AGENTS.md` / `CLAUDE.md`：项目原有规则文件；应用不会覆盖它们，只会在这些文件存在时追加指向 `AGENTS.team.md` 的规则入口和迭代协议协作流程。
 
 `agents.json` 中的单个角色结构如下：
 
@@ -135,7 +137,7 @@ LLM 返回结果会经过结构校验。如果请求失败、超时或返回格�
 }
 ```
 
-完整 `TeamConfig` 还包含 `schemaVersion`、`projectName`、`requirement`、`techStackHints`、`generatedBy`、`createdAt`、`workflow`、`agents` 和 `conventions`。生成后的 `workflow` 必须包含“制定冲刺协议”“按协议开发”“评估与反馈”步骤。
+完整 `TeamConfig` 还包含 `schemaVersion`、`projectName`、`requirement`、`techStackHints`、`generatedBy`、`createdAt`、`workflow`、`agents`、`processManagement` 和 `conventions`。生成后的 `processManagement` 必须包含 RUP 四个阶段和迭代；`workflow` 必须包含“项目启动”“制定迭代协议”“迭代开发”“评估与反馈”“迭代复盘”“阶段验收”“移交验收”步骤。
 
 ## 开发命令
 
@@ -160,7 +162,7 @@ src/
   services/    业务逻辑、持久化、LLM、导出
   shared/      共享类型和 IPC channel 定义
 test/          Vitest 单元测试
-docs/          架构、产品、可靠性、质量文档
+docs/          架构、产品、可靠性、RUP 过程、质量文档
 scripts/       开发、基准、清理脚本
 ```
 
@@ -169,7 +171,7 @@ scripts/       开发、基准、清理脚本
 当前仓库已通过以下验证：
 
 - `npm run check`
-- `npm test`（24 个测试用例）
+- `npm test`（27 个测试用例）
 - `npm run build`
 - `bash init.sh`
 - `bash scripts/benchmark.sh`（3/3）

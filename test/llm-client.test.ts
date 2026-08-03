@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LlmClient } from '../src/services/llm-client';
 
 const validPayload = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   projectName: 'LLM Project',
   workflow: [],
   agents: [
@@ -54,8 +54,11 @@ describe('llm-client', () => {
     expect(team.agents.some((agent) => agent.name === '开发者')).toBe(true);
     expect(team.agents.some((agent) => agent.name === '规划者')).toBe(true);
     expect(team.agents.some((agent) => agent.name === '评估者')).toBe(true);
-    expect(team.workflow[0].name).toContain('冲刺协议');
+    expect(team.workflow[0].name).toContain('项目启动');
+    expect(team.workflow.some((step) => step.name.includes('制定迭代协议'))).toBe(true);
     expect(team.workflow.some((step) => step.name.includes('评估与反馈'))).toBe(true);
+    expect(team.processManagement.framework).toBe('rup');
+    expect(team.processManagement.phases).toHaveLength(4);
   });
 
   it('throws when the response contains no JSON', async () => {
@@ -109,6 +112,7 @@ describe('llm-client', () => {
     expect(team.agents.some((agent) => agent.name === '开发者')).toBe(true);
     expect(team.agents.some((agent) => agent.name === '规划者')).toBe(true);
     expect(team.agents.some((agent) => agent.name === '评估者')).toBe(true);
+    expect(team.processManagement.framework).toBe('rup');
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.minimaxi.com/anthropic/v1/messages',
       expect.objectContaining({ method: 'POST' })
@@ -116,6 +120,9 @@ describe('llm-client', () => {
     const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
     expect(body.max_tokens).toBe(4096);
     expect(body.system).toContain('多智能体团队设计器');
+    expect(body.system).toContain('迭代协议');
+    expect(body.system).toContain('processManagement');
+    expect(body.system).toContain('启动、细化、构建、移交');
   });
 
   it('returns a connection failure result instead of rejecting on network errors', async () => {

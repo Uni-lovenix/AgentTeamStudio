@@ -16,7 +16,7 @@ check_file() {
 }
 
 echo "=== Agent Team Studio Cleanup Scanner ==="
-for file in README.md AGENTS.md CLAUDE.md feature_list.json clean-state-checklist.md session-handoff.md evaluator-rubric.md docs/quality-document.md docs/ARCHITECTURE.md docs/PRODUCT.md docs/RELIABILITY.md scripts/dev.js scripts/benchmark.sh scripts/cleanup-scanner.sh init.sh; do
+for file in README.md AGENTS.md CLAUDE.md feature_list.json clean-state-checklist.md session-handoff.md evaluator-rubric.md docs/quality-document.md docs/ARCHITECTURE.md docs/PRODUCT.md docs/RELIABILITY.md docs/PROCESS.md scripts/dev.js scripts/benchmark.sh scripts/cleanup-scanner.sh init.sh; do
   check_file "$file"
 done
 

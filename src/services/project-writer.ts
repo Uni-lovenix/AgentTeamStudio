@@ -15,7 +15,11 @@ export const AGENT_RULES_FILENAMES = [
   CODEX_RULES_FILENAME,
 ] as const;
 const COLLABORATION_POINTER =
-  '协作流程：规划者每项任务开始前制定冲刺协议，开发者按协议开发，评估者按协议校验并反馈给开发者修改。';
+  '协作流程：规划者每个迭代开始前制定迭代协议，开发者按迭代协议开发，评估者按迭代协议校验并反馈给开发者修改。';
+const LEGACY_COLLABORATION_POINTERS = [
+  '协作流程：规划者每项任务开始前制定冲刺协议，开发者按协议开发，评估者按协议校验并反馈给开发者修改。',
+  '协作流程：规划者每个迭代开始前制定冲刺协议，开发者按迭代协议开发，评估者按迭代协议校验并反馈给开发者修改。',
+];
 
 export interface TargetInspection {
   directoryExists: boolean;
@@ -33,15 +37,15 @@ function bulletOrNone(items: string[]): string {
 
 function collaborationRule(agent: AgentRole): string {
   if (agent.name === '规划者') {
-    return '- 每项任务开始前制定冲刺协议，明确任务拆解、目标、范围、完成标准、验收方式和交付物。';
+    return '- 每个迭代开始前制定迭代协议，明确目标、范围、计划、交付物和退出标准。';
   }
   if (agent.name === '评估者') {
-    return '- 按冲刺协议校验开发者交付；发现问题反馈给对应开发者修改，并复核到通过。';
+    return '- 按迭代协议和退出标准校验开发者交付；发现问题反馈给对应开发者修改，并复核到通过。';
   }
   if (agent.name.includes('开发者')) {
-    return '- 按规划者制定的冲刺协议开发；收到评估者反馈后修改并提交复核。';
+    return '- 按规划者制定的迭代协议开发；收到评估者反馈后修改并提交复核。';
   }
-  return '- 按冲刺协议完成职责，接受评估者校验并按反馈修改。';
+  return '- 按迭代协议完成职责，接受评估者校验并按反馈修改。';
 }
 
 function safeAgentFileName(agent: AgentRole, index: number): string {
@@ -126,6 +130,23 @@ export function renderTeamMarkdown(team: TeamConfig): string {
     )
     .join('\n');
 
+  const processSections = team.processManagement.phases
+    .map((phase) => {
+      const phaseIterations = team.processManagement.iterations.filter((iteration) =>
+        phase.iterationIds.includes(iteration.id)
+      );
+      const iterationList = phaseIterations
+        .map((iteration) => {
+          const owner =
+            team.agents.find((agent) => agent.id === iteration.ownerRoleId)?.name ??
+            '待分配';
+          return `- **${iteration.name}**（${iteration.status}，负责人：${owner}）：${iteration.objective}`;
+        })
+        .join('\n');
+      return `### ${phase.name}阶段\n\n里程碑：${phase.milestone}\n\n目标：${phase.goals.join('；')}\n\n交付物：${phase.deliverables.join('、')}\n\n退出标准：${phase.exitCriteria.join('；')}\n\n迭代：\n${iterationList || '- 无'}`;
+    })
+    .join('\n\n');
+
   return `# ${team.projectName} 智能体团队
 
 > 本文件由 Agent Team Studio 生成，供多智能体协作开发使用。
@@ -138,9 +159,17 @@ ${team.requirement}
 
 生成方式：${team.generatedBy === 'llm' ? 'LLM 辅助生成' : '需求驱动生成'}
 
-## 冲刺协议
+## RUP 过程管理
 
-每项任务开始前，规划者必须制定冲刺协议，包含任务目标、范围、任务拆解、完成标准、验收方式和交付物。开发者按协议开发；评估者按协议校验，发现问题反馈给对应开发者修改；通过后进入下一任务或最终验收。
+项目按启动、细化、构建、移交四个 RUP 阶段推进；每个阶段有里程碑和退出标准，每个迭代开始前由规划者制定迭代协议，开发者按迭代协议开发，评估者按退出标准校验并反馈给对应开发者修改；阶段未达退出标准时不得进入下一阶段。
+
+当前阶段：${team.processManagement.currentPhaseId}
+
+${processSections}
+
+## 迭代协议
+
+每个迭代开始前，规划者必须制定迭代协议，包含迭代目标、范围、计划、交付物和退出标准。开发者按迭代协议开发；评估者按迭代协议校验，发现问题反馈给对应开发者修改；通过后进入下一迭代、阶段验收或最终移交。
 
 ## 智能体路由
 
@@ -168,7 +197,11 @@ function renderTeamPointer(): string {
 
 function appendTeamRulesIfMissing(absolutePath: string): boolean {
   if (!fs.existsSync(absolutePath)) return false;
-  const content = fs.readFileSync(absolutePath, 'utf-8');
+  const originalContent = fs.readFileSync(absolutePath, 'utf-8');
+  let content = originalContent;
+  for (const legacyPointer of LEGACY_COLLABORATION_POINTERS) {
+    content = content.split(legacyPointer).join(COLLABORATION_POINTER);
+  }
   const needsPointer = !content.includes(renderTeamPointer());
   const needsCollaboration = !content.includes(COLLABORATION_POINTER);
   if (!needsPointer && !needsCollaboration) return false;
@@ -183,7 +216,7 @@ function appendTeamRulesIfMissing(absolutePath: string): boolean {
   const tempPath = `${absolutePath}.tmp`;
   fs.writeFileSync(tempPath, nextContent, 'utf-8');
   fs.renameSync(tempPath, absolutePath);
-  return true;
+  return content !== originalContent || needsPointer || needsCollaboration;
 }
 
 export class ProjectWriter {

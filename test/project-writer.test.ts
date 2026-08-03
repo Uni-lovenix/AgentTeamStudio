@@ -53,8 +53,9 @@ describe('project-writer', () => {
     expect(fs.existsSync(path.join(dir, 'CLAUDE.md'))).toBe(false);
     expect(writer.inspectTarget(dir).existingRuleFiles).toEqual([]);
     expect(renderTeamMarkdown(team)).toContain('# Demo 智能体团队');
-    expect(renderTeamMarkdown(team)).toContain('## 冲刺协议');
-    expect(renderTeamMarkdown(team)).toContain('评估者按协议校验');
+    expect(renderTeamMarkdown(team)).toContain('## RUP 过程管理');
+    expect(renderTeamMarkdown(team)).toContain('## 迭代协议');
+    expect(renderTeamMarkdown(team)).toContain('评估者按迭代协议校验');
     expect(renderTeamMarkdown(team)).toContain('## 智能体路由');
     expect(renderTeamMarkdown(team)).not.toContain(`### ${team.agents[0].name}`);
     expect(
@@ -100,13 +101,13 @@ describe('project-writer', () => {
     expect(result.appendedFiles).toEqual(['AGENTS.md']);
     expect(content).toContain('# Existing Codex Rules');
     expect(content).toContain('使用智能体规则在 AGENTS.team.md 文件');
-    expect(content).toContain('协作流程：规划者每项任务开始前制定冲刺协议');
+    expect(content).toContain('协作流程：规划者每个迭代开始前制定迭代协议');
 
     writer.writeToDirectory(team, dir, true);
     const secondContent = fs.readFileSync(agentsPath, 'utf-8');
     expect(secondContent.match(/使用智能体规则在 AGENTS\.team\.md 文件/g)).toHaveLength(1);
     expect(
-      secondContent.match(/协作流程：规划者每项任务开始前制定冲刺协议/g)
+      secondContent.match(/协作流程：规划者每个迭代开始前制定迭代协议/g)
     ).toHaveLength(1);
   });
 
@@ -127,7 +128,7 @@ describe('project-writer', () => {
     expect(result.appendedFiles).toEqual(['CLAUDE.md']);
     expect(content).toContain('# Existing Claude Rules');
     expect(content).toContain('使用智能体规则在 AGENTS.team.md 文件');
-    expect(content).toContain('评估者按协议校验并反馈给开发者修改');
+    expect(content).toContain('评估者按迭代协议校验并反馈给开发者修改');
   });
 
   it('appends pointers to both CLAUDE.md and AGENTS.md when both exist', () => {
@@ -149,10 +150,10 @@ describe('project-writer', () => {
     expect(fs.readFileSync(claudePath, 'utf-8')).toContain('使用智能体规则在 AGENTS.team.md 文件');
     expect(fs.readFileSync(agentsPath, 'utf-8')).toContain('使用智能体规则在 AGENTS.team.md 文件');
     expect(fs.readFileSync(claudePath, 'utf-8')).toContain(
-      '协作流程：规划者每项任务开始前制定冲刺协议'
+      '协作流程：规划者每个迭代开始前制定迭代协议'
     );
     expect(fs.readFileSync(agentsPath, 'utf-8')).toContain(
-      '协作流程：规划者每项任务开始前制定冲刺协议'
+      '协作流程：规划者每个迭代开始前制定迭代协议'
     );
 
     writer.writeToDirectory(team, dir, true);
@@ -161,11 +162,39 @@ describe('project-writer', () => {
     expect(claudeContent.match(/使用智能体规则在 AGENTS\.team\.md 文件/g)).toHaveLength(1);
     expect(agentsContent.match(/使用智能体规则在 AGENTS\.team\.md 文件/g)).toHaveLength(1);
     expect(
-      claudeContent.match(/协作流程：规划者每项任务开始前制定冲刺协议/g)
+      claudeContent.match(/协作流程：规划者每个迭代开始前制定迭代协议/g)
     ).toHaveLength(1);
     expect(
-      agentsContent.match(/协作流程：规划者每项任务开始前制定冲刺协议/g)
+      agentsContent.match(/协作流程：规划者每个迭代开始前制定迭代协议/g)
     ).toHaveLength(1);
+  });
+
+  it('migrates a legacy sprint pointer to the iteration protocol', () => {
+    const dir = makeTempDir();
+    const agentsPath = path.join(dir, 'AGENTS.md');
+    fs.writeFileSync(
+      agentsPath,
+      '# Existing Codex Rules\n\n协作流程：规划者每项任务开始前制定冲刺协议，开发者按协议开发，评估者按协议校验并反馈给开发者修改。\n'
+    );
+    const writer = new ProjectWriter();
+    const team = buildTeamConfig({
+      projectName: 'Demo',
+      requirement: '一个跨平台桌面应用，用于生成多智能体团队配置。',
+    });
+
+    const result = writer.writeToDirectory(team, dir, false);
+    const content = fs.readFileSync(agentsPath, 'utf-8');
+
+    expect(result.appendedFiles).toEqual(['AGENTS.md']);
+    expect(content).toContain('# Existing Codex Rules');
+    expect(content).not.toContain('冲刺协议');
+    expect(content).toContain('协作流程：规划者每个迭代开始前制定迭代协议');
+    expect(content).toContain('使用智能体规则在 AGENTS.team.md 文件');
+
+    const secondResult = writer.writeToDirectory(team, dir, true);
+    const secondContent = fs.readFileSync(agentsPath, 'utf-8');
+    expect(secondResult.appendedFiles).toEqual([]);
+    expect(secondContent.match(/协作流程：规划者每个迭代开始前制定迭代协议/g)).toHaveLength(1);
   });
 
   it('rejects a missing target directory', () => {

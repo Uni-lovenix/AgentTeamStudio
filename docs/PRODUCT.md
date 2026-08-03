@@ -20,19 +20,20 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 ### Local Team Generation
 - Generate roles from the requirement instead of splitting the work by frontend, backend, or other implementation functions.
 - Always include a Planner (`规划者`), Evaluator (`评估者`), and at least one Developer (`开发者`) role.
-- Planner decomposes tasks, designs the solution, coordinates the process, and creates a sprint protocol before every task.
-- Evaluator checks developer results against the sprint protocol and sends issues back to the responsible developer for changes.
+- Planner decomposes tasks, designs the solution, coordinates the process, and creates an iteration protocol before every iteration.
+- Evaluator checks developer results against the iteration protocol and phase exit criteria, then sends issues back to the responsible developer for changes.
 - Developer roles are generated from requirement-specific responsibility areas such as account/permissions, transaction/payment, content/review, messaging, data/reporting, AI/agent, security/compliance, performance, integration/migration, and other areas when the requirement mentions them; there can be multiple developers.
 - Also include documentation/handoff responsibilities.
 - Every role gets a mission, concrete responsibilities, skills, tools, deliverables, dependencies, and notifications derived from the requirement.
-- Generate a collaboration workflow that starts with a sprint protocol, then development, then evaluation and feedback, and engineering conventions.
+- Generate RUP process management with Inception, Elaboration, Construction, and Transition phases, phase milestones, and iterations.
+- Generate a collaboration workflow that starts with project start and iteration protocol, then development, evaluation and feedback, iteration review, phase acceptance, transition acceptance, and engineering conventions.
 
 ### Optional LLM Generation
 - OpenAI-compatible or Anthropic-compatible Base URL, protocol, and model configuration.
 - MiniMax Anthropic-compatible endpoints are supported with protocol set to `anthropic`.
 - API key stored locally with Electron `safeStorage`.
 - LLM output is schema-normalized before display, and mandatory Planner/Evaluator/Developer roles are reinserted if missing.
-- The LLM prompt requires responsibility-driven developer roles, explicitly discourages frontend/backend function-split roles, and mandates the sprint-protocol workflow.
+- The LLM prompt requires responsibility-driven developer roles, explicitly discourages frontend/backend function-split roles, and mandates the RUP phase/iteration workflow.
 - LLM failure falls back to requirement-driven local generation with a visible warning.
 
 ### Team Preview and Editing
@@ -40,6 +41,7 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 - Edit mission, responsibilities, skills, tools, deliverables, dependencies, and notifications.
 - Add custom roles.
 - Edit workflow step names, descriptions, and owners.
+- Edit RUP phase goals, deliverables, milestones, exit criteria, iteration scope/plans/status, and owner roles.
 - Edit branch, commit, PR, testing, and documentation conventions.
 
 ### Generation Log
@@ -54,7 +56,7 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 - Require user confirmation before overwriting generated team files.
 - Write `AGENTS.team.md` as the team-level router, `agents.json`, and one Markdown file per agent under `agents/` atomically.
 - Role details live only in `agents/*.md`; `AGENTS.team.md` routes each agent to its own file instead of duplicating them.
-- If `AGENTS.md` or `CLAUDE.md` exists, append a pointer to `AGENTS.team.md` plus the sprint-protocol collaboration flow while preserving the existing rules.
+- If `AGENTS.md` or `CLAUDE.md` exists, append a pointer to `AGENTS.team.md` plus the iteration-protocol collaboration flow while preserving the existing rules.
 
 ### Settings and Status
 - Enable or disable LLM generation.
@@ -73,5 +75,7 @@ The first screen is the working tool: left sidebar for project drafts, center ar
 - No new project scaffolding in this version.
 - No network requests except optional LLM calls.
 - Generated files are `AGENTS.team.md`, `agents.json`, and `agents/*.md` for each agent.
-- Generated teams must contain Planner, Evaluator, and one or more Developer roles, with sprint protocol, development, evaluation, and feedback workflow steps.
-- Existing `AGENTS.md` and `CLAUDE.md` are never overwritten; each existing rule file only receives an appended pointer plus the sprint-protocol collaboration flow.
+- Generated teams must contain Planner, Evaluator, and one or more Developer roles, with RUP process management and iteration protocol, development, evaluation, and feedback workflow steps.
+- No separate RUP roles such as architect, tester, deployment engineer, or project manager are generated; the Planner, Evaluator, Developer, and documentation handoff roles carry the process responsibilities.
+- Generated `processManagement` must include the four RUP phases and at least one iteration per phase.
+- Existing `AGENTS.md` and `CLAUDE.md` are never overwritten; each existing rule file only receives an appended pointer plus the iteration-protocol collaboration flow.

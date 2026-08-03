@@ -23,9 +23,26 @@ describe('requirement-analyzer', () => {
     expect(names).toContain('文档与交接负责人');
     expect(team.projectName).toBe('Shop');
     expect(team.techStackHints).toContain('React');
-    expect(team.workflow.length).toBeGreaterThanOrEqual(5);
-    expect(team.workflow.some((step) => step.name.includes('冲刺协议'))).toBe(true);
+    expect(team.schemaVersion).toBe(2);
+    expect(team.processManagement.framework).toBe('rup');
+    expect(team.processManagement.phases.map((phase) => phase.name)).toEqual([
+      '启动',
+      '细化',
+      '构建',
+      '移交',
+    ]);
+    expect(team.processManagement.iterations.some((iteration) => iteration.phaseId === 'construction')).toBe(
+      true
+    );
+    expect(team.workflow.length).toBeGreaterThanOrEqual(7);
+    expect(team.workflow.some((step) => step.name.includes('项目启动'))).toBe(true);
+    expect(team.workflow.some((step) => step.name.includes('制定迭代协议'))).toBe(true);
+    expect(team.workflow.some((step) => step.name.includes('迭代开发'))).toBe(true);
     expect(team.workflow.some((step) => step.name.includes('评估与反馈'))).toBe(true);
+    expect(team.workflow.some((step) => step.name.includes('迭代复盘'))).toBe(true);
+    expect(team.workflow.some((step) => step.name.includes('阶段验收'))).toBe(true);
+    expect(team.workflow.some((step) => step.name.includes('移交验收'))).toBe(true);
+    expect(team.workflow.some((step) => step.name.includes('冲刺'))).toBe(false);
     expect(team.agents.filter((agent) => agent.name.includes('开发者')).length).toBeGreaterThan(0);
     expect(team.agents.every((agent) => agent.responsibilities.length > 0)).toBe(true);
     expect(
@@ -67,8 +84,12 @@ describe('requirement-analyzer', () => {
     expect(names).toContain('规划者');
     expect(names).toContain('评估者');
     expect(names.some((name) => name.includes('开发者'))).toBe(true);
-    expect(team.workflow[0].name).toContain('冲刺协议');
+    expect(team.workflow[0].name).toContain('项目启动');
+    expect(team.workflow.some((step) => step.name.includes('制定迭代协议'))).toBe(true);
     expect(team.workflow.some((step) => step.name.includes('评估与反馈'))).toBe(true);
+    expect(team.processManagement.currentPhaseId).toBe('inception');
+    expect(team.processManagement.phases).toHaveLength(4);
+    expect(team.processManagement.iterations.length).toBeGreaterThanOrEqual(4);
   });
 
   it('normalizes an LLM payload with safe fallbacks', () => {
@@ -103,10 +124,16 @@ describe('requirement-analyzer', () => {
     expect(developer?.responsibilities).toEqual(['写代码']);
     expect(team.agents.some((agent) => agent.name === '规划者')).toBe(true);
     expect(team.agents.some((agent) => agent.name === '评估者')).toBe(true);
-    expect(team.workflow[0].name).toContain('冲刺协议');
+    expect(team.schemaVersion).toBe(2);
+    expect(team.workflow[0].name).toContain('项目启动');
+    expect(team.workflow.some((step) => step.name.includes('制定迭代协议'))).toBe(true);
     expect(team.workflow.some((step) => step.name.includes('评估与反馈'))).toBe(true);
+    expect(team.processManagement.framework).toBe('rup');
+    expect(team.processManagement.phases).toHaveLength(4);
+    expect(team.processManagement.iterations.length).toBeGreaterThanOrEqual(4);
     expect(team.conventions.branch).toBeTruthy();
     expect(team.generationLog?.some((entry) => entry.step === 'LLM 解析')).toBe(true);
     expect(team.generationLog?.some((entry) => entry.step === '强制角色')).toBe(true);
+    expect(team.generationLog?.some((entry) => entry.step === 'RUP 过程')).toBe(true);
   });
 });

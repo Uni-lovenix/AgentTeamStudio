@@ -6,7 +6,9 @@ Cross-platform Electron desktop app that turns a project requirement description
 
 ## Multi-Agent Collaboration Model
 
-Generated teams always include a Planner (`规划者`) and Evaluator (`评估者`), plus one or more responsibility-specific Developer (`开发者`) roles. Every task starts with a sprint protocol: Planner defines it, Developers build against it, Evaluator validates against it, and any issues are sent back to the responsible Developer until accepted.
+Generated teams always include a Planner (`规划者`) and Evaluator (`评估者`), plus one or more responsibility-specific Developer (`开发者`) roles. Generated teams use a lightweight RUP process with Inception, Elaboration, Construction, and Transition phases. Every iteration starts with an iteration protocol: Planner defines it, Developers build against it, Evaluator validates it against phase exit criteria, and any issues are sent back to the responsible Developer until accepted.
+
+No separate RUP roles such as architect, tester, deployment engineer, or project manager are generated; the Planner, Evaluator, Developer, and documentation handoff roles carry the process responsibilities.
 
 ## Commands
 
@@ -34,14 +36,15 @@ All IPC channels and shared types live in `src/shared/types.ts`. Do not create a
 - `RequirementAnalyzer`: local keyword-based team generation.
 - `LlmClient`: optional OpenAI-compatible `/chat/completions` client.
 - `TeamGenerationService`: local/LLM generation with validation and fallback.
-- `ProjectWriter`: atomic export of `AGENTS.md` and `agents.json`.
+- `ProjectWriter`: atomic export of `AGENTS.team.md` and `agents.json`.
+- `ProcessManagement`: shared RUP phase/iteration model used by generation, normalization, migration, and export.
 - `SettingsService`: LLM settings with encrypted API key storage.
 - `PersistenceService`: JSON persistence under Electron `userData`.
 
 ## Output Files
 
-- `AGENTS.md`: human/agent-readable team, workflow, and engineering conventions.
-- `agents.json`: schema version 1 machine-readable team config.
+- `AGENTS.team.md`: human/agent-readable team, RUP process, workflow, and engineering conventions.
+- `agents.json`: schema version 2 machine-readable team config.
 
 ## Boundaries
 

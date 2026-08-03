@@ -63,7 +63,8 @@ Targets:
 - Average export: under 100ms.
 - Generated agent count: at least 3.
 - Generated team contains Planner, Evaluator, and at least one Developer role.
-- Generated workflow contains a sprint-protocol step and an evaluation/feedback step.
+- Generated team contains RUP process management with four phases.
+- Generated workflow contains a project-start step, iteration-protocol step, and an evaluation/feedback step.
 
 ## Cross-Platform Packaging
 

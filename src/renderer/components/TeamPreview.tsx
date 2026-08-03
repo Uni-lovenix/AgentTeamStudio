@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { AgentRole, TeamConfig } from '../../shared/types';
+import { ProcessManagementEditor } from './ProcessManagementEditor';
 
 interface TeamPreviewProps {
   team: TeamConfig | null;
@@ -201,6 +202,12 @@ export function TeamPreview({ team, onChange }: TeamPreviewProps) {
           </div>
         ))}
       </div>
+
+      <ProcessManagementEditor
+        process={team.processManagement}
+        agents={team.agents}
+        onChange={(processManagement) => onChange({ ...team, processManagement })}
+      />
 
       <div className="conventions-editor">
         <div className="subheading">工程约定</div>

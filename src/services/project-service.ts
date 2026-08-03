@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ProjectDraft } from '../shared/types';
 import { PersistenceService } from './persistence-service';
 import { logger } from './logger';
+import { migrateTeamToV2 } from './process-management';
 
 const SERVICE = 'project-service';
 
@@ -11,9 +12,23 @@ export class ProjectService {
   constructor(private persistence: PersistenceService) {}
 
   list(): ProjectDraft[] {
-    const projects = this.persistence.readJson<ProjectDraft[]>('projects.json') ?? [];
-    this.log.debug('Listed project drafts', { count: projects.length });
-    return projects.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    const stored = this.persistence.readJson<ProjectDraft[]>('projects.json') ?? [];
+    let migratedCount = 0;
+    const projects = stored.map((draft) => {
+      const team = migrateTeamToV2(draft.team);
+      if (team === draft.team) return draft;
+      migratedCount += 1;
+      return { ...draft, team };
+    });
+    if (migratedCount > 0) {
+      this.persistence.writeJson('projects.json', projects);
+      this.log.info('Migrated project drafts to schema v2', {
+        migratedCount,
+      });
+    }
+    const sorted = projects.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    this.log.debug('Listed project drafts', { count: sorted.length });
+    return sorted;
   }
 
   get(id: string): ProjectDraft | null {

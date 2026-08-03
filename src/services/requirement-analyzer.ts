@@ -6,6 +6,10 @@ import {
   TeamConfig,
   WorkflowStep,
 } from '../shared/types';
+import {
+  buildProcessManagement,
+  normalizeProcessManagement,
+} from './process-management';
 
 export interface RequirementAnalysisContext {
   projectName?: string;
@@ -407,39 +411,39 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
   addRole(
     createRole(
       '规划者',
-      '把需求拆解为可执行任务，制定方案、流程和冲刺协议，并协调开发者完成交付。',
+      '把需求拆解为可执行任务，制定方案、流程和迭代协议，并协调开发者完成交付。',
       [
         '把需求或任务拆解为可执行、可验收的开发任务',
         '制定技术方案、交付顺序、依赖关系和流程协调规则',
-        '每项任务开始前制定冲刺协议，明确目标、范围、完成标准和验收方式',
+        '每个迭代开始前制定迭代协议，明确目标、范围、完成标准和退出标准',
         '协调开发者、评估者和文档交接流程，处理阻塞与变更',
       ],
       ['任务拆解', '方案设计', '流程协调'],
-      ['冲刺协议模板', '任务看板', '依赖清单'],
-      ['任务分解', '冲刺协议', '流程协调记录'],
+      ['迭代协议模板', '任务看板', '依赖清单'],
+      ['任务分解', '迭代协议', '流程协调记录'],
       [],
       ['评估者', '开发者', '文档与交接负责人']
     )
   );
   generationLog.push({
     step: '基础角色',
-    detail: '任务开始前必须有人负责拆解任务、制定方案和流程，所以生成“规划者”。',
+    detail: '每个迭代开始前必须有人负责拆解任务、制定方案和流程，所以生成“规划者”。',
     role: '规划者',
-    outcome: '负责任务分解、方案与流程协调，并制定冲刺协议',
+    outcome: '负责任务分解、方案与流程协调，并制定迭代协议',
   });
 
   addRole(
     createRole(
       '评估者',
-      '依据冲刺协议评估开发者的交付结果，发现问题反馈给开发者修改，并确认闭环。',
+      '依据迭代协议和退出标准评估开发者的交付结果，发现问题反馈给开发者修改，并确认闭环。',
       [
-        '对照冲刺协议检查每个任务的目标、完成标准和交付物',
+        '对照迭代协议检查每个迭代的目标、完成标准和交付物',
         '评估开发者生成的结果，记录问题并反馈给对应开发者',
         '复核修复结果，确认通过后进入下一任务或最终验收',
         '汇总评估报告、风险记录和未满足项',
       ],
       ['验收标准', '结果评估', '问题闭环'],
-      ['冲刺协议', '验收清单', '问题记录'],
+      ['迭代协议', '验收清单', '问题记录'],
       ['评估报告', '问题清单', '修复确认'],
       ['规划者'],
       ['规划者', '开发者', '文档与交接负责人']
@@ -449,7 +453,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
     step: '基础角色',
     detail: '开发者交付后必须有人按统一标准校验并反馈，所以生成“评估者”。',
     role: '评估者',
-    outcome: '负责按冲刺协议校验结果、反馈问题并确认修复',
+    outcome: '负责按迭代协议校验结果、反馈问题并确认修复',
   });
 
   for (const spec of matchedSpecs) {
@@ -471,7 +475,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
     });
     const responsibilities = [
       ...spec.responsibilities,
-      phrase ? `围绕需求中的“${phrase}”落实可验收交付。` : '按冲刺协议完成本责任区块的开发、测试与交付物。',
+      phrase ? `围绕需求中的“${phrase}”落实可验收交付。` : '按迭代协议完成本责任区块的开发、测试与交付物。',
       '根据评估者反馈修改问题，直到通过校验。',
     ];
     addRole(
@@ -492,14 +496,14 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
     addRole(
       createRole(
         '开发者',
-        '按规划者制定的冲刺协议完成开发、测试和交付物，并根据评估者反馈修复问题。',
+        '按规划者制定的迭代协议完成开发、测试和交付物，并根据评估者反馈修复问题。',
         [
-          '阅读并执行冲刺协议中的任务目标、范围和完成标准',
+          '阅读并执行迭代协议中的任务目标、范围和完成标准',
           '完成本任务实现、测试与必要文档',
           '根据评估者反馈修改问题，直到通过校验',
         ],
         ['需求实现', '代码质量', '问题修复'],
-        ['开发环境', '测试工具', '冲刺协议'],
+        ['开发环境', '测试工具', '迭代协议'],
         ['实现代码', '测试结果', '变更说明'],
         ['规划者'],
         ['评估者']
@@ -509,7 +513,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
       step: '基础角色',
       detail: '当前需求未命中具体责任区块，为保证有执行者所以生成“开发者”。',
       role: '开发者',
-      outcome: '负责按冲刺协议开发并根据评估者反馈修改',
+      outcome: '负责按迭代协议开发并根据评估者反馈修改',
     });
   }
 
@@ -552,33 +556,45 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
 
   const workflow: WorkflowStep[] = [
     {
-      id: 'sprint-protocol',
-      name: '制定冲刺协议',
-      description: '规划者在每项任务开始前制定冲刺协议，明确任务拆解、目标、范围、完成标准、验收方式和交付物。',
+      id: 'project-start',
+      name: '项目启动',
+      description: '规划者确认项目边界、目标、关键约束和初始风险，并制定首个迭代计划。',
       ownerRoleId: plannerRole.id,
     },
     {
-      id: 'development',
-      name: '按协议开发',
-      description: '各开发者按规划者制定的冲刺协议完成实现、测试和交付物。',
+      id: 'iteration-protocol',
+      name: '制定迭代协议',
+      description: '规划者在每个迭代开始前制定迭代协议，明确目标、范围、计划、完成标准、交付物和退出标准。',
+      ownerRoleId: plannerRole.id,
+    },
+    {
+      id: 'iteration-development',
+      name: '迭代开发',
+      description: '各开发者按规划者制定的迭代协议完成实现、测试和交付物。',
       ownerRoleId: primaryDeveloperRole.id,
     },
     {
-      id: 'evaluation',
+      id: 'evaluation-feedback',
       name: '评估与反馈',
-      description: '评估者按冲刺协议校验开发者交付；发现问题反馈给对应开发者修改，通过后进入下一任务。',
+      description: '评估者按迭代协议和退出标准校验开发者交付；发现问题反馈给对应开发者修改，通过后进入下一迭代。',
       ownerRoleId: evaluatorRole.id,
     },
     {
-      id: 'acceptance',
-      name: '集成验收',
-      description: '评估者核对全部任务是否按冲刺协议完成，并汇总交付状态与未满足项。',
+      id: 'iteration-review',
+      name: '迭代复盘',
+      description: '规划者汇总迭代结果、风险、反馈和未满足项，决定下一迭代或阶段是否开始。',
+      ownerRoleId: plannerRole.id,
+    },
+    {
+      id: 'phase-acceptance',
+      name: '阶段验收',
+      description: '评估者核对当前 RUP 阶段的里程碑和退出标准，通过后进入下一阶段。',
       ownerRoleId: evaluatorRole.id,
     },
     {
-      id: 'handoff',
-      name: '文档交接',
-      description: '更新需求、接口、运行说明和交付清单。',
+      id: 'transition-acceptance',
+      name: '移交验收',
+      description: '完成最终验收、文档交接和已知问题移交。',
       ownerRoleId: docsRole.id,
     },
   ];
@@ -594,8 +610,14 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
       .join('；'),
   });
 
+  const processManagement = buildProcessManagement(
+    finalRoles,
+    requirement,
+    techStackHints
+  );
+
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     projectName,
     requirement,
     techStackHints,
@@ -603,6 +625,7 @@ export function buildTeamConfig(context: RequirementAnalysisContext): TeamConfig
     createdAt: new Date().toISOString(),
     workflow,
     agents: finalRoles,
+    processManagement,
     conventions: DEFAULT_CONVENTIONS,
     generationLog,
   };
@@ -671,45 +694,74 @@ function enforceMandatoryRoles(
   return { agents: result, addedRoleNames };
 }
 
-function ensureSprintWorkflow(steps: WorkflowStep[], agents: AgentRole[]): WorkflowStep[] {
+const RUP_WORKFLOW_STEPS: Array<Omit<WorkflowStep, 'ownerRoleId'>> = [
+  {
+    id: 'project-start',
+    name: '项目启动',
+    description: '规划者确认项目边界、目标、关键约束和初始风险，并制定首个迭代计划。',
+  },
+  {
+    id: 'iteration-protocol',
+    name: '制定迭代协议',
+    description: '规划者在每个迭代开始前制定迭代协议，明确目标、范围、计划、完成标准、交付物和退出标准。',
+  },
+  {
+    id: 'iteration-development',
+    name: '迭代开发',
+    description: '各开发者按规划者制定的迭代协议完成实现、测试和交付物。',
+  },
+  {
+    id: 'evaluation-feedback',
+    name: '评估与反馈',
+    description: '评估者按迭代协议和退出标准校验开发者交付；发现问题反馈给对应开发者修改，通过后进入下一迭代。',
+  },
+  {
+    id: 'iteration-review',
+    name: '迭代复盘',
+    description: '规划者汇总迭代结果、风险、反馈和未满足项，决定下一迭代或阶段是否开始。',
+  },
+  {
+    id: 'phase-acceptance',
+    name: '阶段验收',
+    description: '评估者核对当前 RUP 阶段的里程碑和退出标准，通过后进入下一阶段。',
+  },
+  {
+    id: 'transition-acceptance',
+    name: '移交验收',
+    description: '完成最终验收、文档交接和已知问题移交。',
+  },
+];
+
+function ensureRupWorkflow(steps: WorkflowStep[], agents: AgentRole[]): WorkflowStep[] {
   const roleIdByName = (name: string): string =>
     agents.find((agent) => agent.name === name)?.id ?? agents[0]?.id ?? '';
   const plannerId = roleIdByName('规划者');
   const evaluatorId = roleIdByName('评估者');
+  const docsId = roleIdByName('文档与交接负责人') || evaluatorId;
   const developerId =
     agents.find((agent) => agent.name.includes('开发者'))?.id ?? agents[0]?.id ?? '';
 
-  const result = [...steps];
-  if (!result.some((step) => step.name.includes('冲刺') || step.name.includes('协议'))) {
-    result.unshift({
-      id: 'sprint-protocol',
-      name: '制定冲刺协议',
-      description: '规划者在每项任务开始前制定冲刺协议，明确任务拆解、目标、范围、完成标准、验收方式和交付物。',
-      ownerRoleId: plannerId,
-    });
-  }
-  if (!result.some((step) => step.name.includes('开发'))) {
-    const sprintIndex = result.findIndex(
-      (step) => step.name.includes('冲刺') || step.name.includes('协议')
-    );
-    result.splice(sprintIndex >= 0 ? sprintIndex + 1 : 1, 0, {
-      id: 'development',
-      name: '按协议开发',
-      description: '各开发者按规划者制定的冲刺协议完成实现、测试和交付物。',
-      ownerRoleId: developerId,
-    });
-  }
-  if (
-    !result.some(
-      (step) => step.name.includes('评估') || step.name.includes('校验')
-    )
-  ) {
-    result.push({
-      id: 'evaluation',
-      name: '评估与反馈',
-      description: '评估者按冲刺协议校验开发者交付；发现问题反馈给对应开发者修改，通过后进入下一任务。',
-      ownerRoleId: evaluatorId,
-    });
+  const result = steps.map((step) => ({
+    ...step,
+    name: step.name.replace(/冲刺协议/g, '迭代协议').replace(/按冲刺/g, '按迭代'),
+    description: step.description
+      .replace(/冲刺协议/g, '迭代协议')
+      .replace(/每项任务/g, '每个迭代')
+      .replace(/按冲刺/g, '按迭代'),
+  }));
+
+  for (const definition of RUP_WORKFLOW_STEPS) {
+    if (result.some((step) => step.name.includes(definition.name))) continue;
+    const ownerRoleId =
+      definition.id === 'iteration-development'
+        ? developerId
+        : definition.id === 'evaluation-feedback' ||
+            definition.id === 'phase-acceptance'
+          ? evaluatorId
+          : definition.id === 'transition-acceptance'
+            ? docsId
+            : plannerId;
+    result.push({ ...definition, ownerRoleId });
   }
 
   return result
@@ -720,7 +772,7 @@ function ensureSprintWorkflow(steps: WorkflowStep[], agents: AgentRole[]): Workf
           ? step.ownerRoleId
           : agents[0]?.id ?? '',
     }))
-    .slice(0, 10);
+    .slice(0, 12);
 }
 
 export function normalizeTeamConfig(
@@ -765,7 +817,18 @@ export function normalizeTeamConfig(
     evidence: '技能、工具、交付物、约定等字段',
     outcome: 'TeamConfig 已标准化',
   });
-  const workflow: WorkflowStep[] = ensureSprintWorkflow(
+  const processManagement = normalizeProcessManagement(
+    value.processManagement,
+    fallback.processManagement,
+    dedupedAgents
+  );
+  generationLog.push({
+    step: 'RUP 过程',
+    detail: '过程管理已标准化为启动、细化、构建、移交四个阶段，并为每个阶段保留迭代与退出标准。',
+    evidence: processManagement.phases.map((phase) => phase.name).join('、'),
+    outcome: `当前阶段：${processManagement.currentPhaseId}，共 ${processManagement.iterations.length} 个迭代`,
+  });
+  const workflow: WorkflowStep[] = ensureRupWorkflow(
     rawWorkflow
     .map((step, index) => {
       const item = (step ?? {}) as Record<string, unknown>;
@@ -782,7 +845,7 @@ export function normalizeTeamConfig(
   const rawConventions = (value.conventions ?? {}) as Record<string, unknown>;
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     projectName:
       typeof value.projectName === 'string' && value.projectName
         ? value.projectName
@@ -793,6 +856,7 @@ export function normalizeTeamConfig(
     createdAt: new Date().toISOString(),
     workflow,
     agents: dedupedAgents,
+    processManagement,
     generationLog,
     conventions: {
       branch:
