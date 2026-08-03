@@ -51,6 +51,7 @@ shasum -a 256 AgentTeamStudio-0.1.0-mac-arm64.zip AgentTeamStudio-0.1.0-win-x64.
 - 实际生成过程日志展示“依据什么信号、生成哪个角色、得到什么结果”，而不是只罗列步骤名称。
 - 每个角色带稳定的 `kind` 语义字段，重命名角色后仍能识别规划者、评估者、开发者和文档交接身份；写入前会校验并自动修复必需角色、悬空引用和 RUP 流程，无法修复时阻止导出。
 - 将配置原子写入用户选择的已有项目目录，团队配置使用 `AGENTS.team.md`、`agents.json` 和 `agents/` 下的独立角色文件；同时默认初始化核心 RUP harness 和可填写评分文件，不覆盖已有规则和状态文件。
+- 导出后的落盘校验会检查 `progress.md` 内容标记，并确保 `feature_list.json` 的移交条目引用实际 transition 迭代，而不是硬编码迭代 ID。
 - 导出项目会得到 `quality-document.md`、`evaluator-rubric.md` 和 `clean-state-checklist.md`：质量证据、1-5 分迭代验收评分表和干净状态检查清单初始为待评估，由后续规划者/评估者按 RUP 迭代填写。
 - 本地保存多个项目草稿，重启后仍可继续编辑。
 - API Key 使用 Electron `safeStorage` 加密保存，不会写入目标项目。

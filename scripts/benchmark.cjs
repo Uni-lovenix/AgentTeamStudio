@@ -71,6 +71,9 @@ const rubricScale = fs
 const cleanStateChecklist = fs
   .readFileSync(path.join(dir, 'clean-state-checklist.md'), 'utf-8')
   .includes('干净状态检查清单');
+const progressLog = fs
+  .readFileSync(path.join(dir, 'progress.md'), 'utf-8')
+  .includes('Session Progress Log');
 fs.rmSync(dir, { recursive: true, force: true });
 
 const analyzeAvgMs = analyze.durationMs / 5;
@@ -111,6 +114,7 @@ const validatePass =
   qualityEvidence &&
   rubricScale &&
   cleanStateChecklist &&
+  progressLog &&
   hasRoleKinds &&
   hasSchemaV3;
 const analyzePass = analyzeAvgMs < 500;
@@ -123,6 +127,6 @@ console.log(`[validate] generated agents: ${agentCount}, planner=${hasPlanner}, 
 console.log(`[validate] harness files: ${harnessFilesPresent ? 'PASS' : 'FAIL'}`);
 console.log(`[validate] generated harness: ${harnessValidation.ok ? 'PASS' : 'FAIL'}`);
 console.log(`[validate] rule maps: AGENTS=${agentsRulesMap}, CLAUDE=${claudeRulesMap} ${agentsRulesMap && claudeRulesMap ? 'PASS' : 'FAIL'}`);
-console.log(`[validate] scoring harness: quality=${qualityEvidence}, rubric=${rubricScale}, checklist=${cleanStateChecklist} ${qualityEvidence && rubricScale && cleanStateChecklist ? 'PASS' : 'FAIL'}`);
+console.log(`[validate] scoring harness: quality=${qualityEvidence}, rubric=${rubricScale}, checklist=${cleanStateChecklist}, progress=${progressLog} ${qualityEvidence && rubricScale && cleanStateChecklist && progressLog ? 'PASS' : 'FAIL'}`);
 console.log(`=== Summary: ${passed ? '3/3 tasks passed' : 'benchmark failed'} ===`);
 process.exit(passed ? 0 : 1);

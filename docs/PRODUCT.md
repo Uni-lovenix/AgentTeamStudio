@@ -35,7 +35,7 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 - API key stored locally with Electron `safeStorage`.
 - LLM output is schema-normalized before display, and mandatory Planner/Evaluator/Developer roles are reinserted by `kind` if missing.
 - The LLM prompt requires responsibility-driven developer roles, explicitly discourages frontend/backend function-split roles, and mandates the RUP phase/iteration workflow.
-- LLM failure falls back to requirement-driven local generation with a visible warning.
+- LLM requests use a 60-second timeout; failure, timeout, or invalid output falls back to requirement-driven local generation with a visible warning.
 
 ### Team Preview and Editing
 - Rename and remove roles.
@@ -65,6 +65,7 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 - Existing harness files are never overwritten; `feature_list.json`, `progress.md`, `session-handoff.md`, `quality-document.md`, `evaluator-rubric.md`, `clean-state-checklist.md`, `init.sh`, and `docs/PROCESS.md` are skipped when already present.
 - `quality-document.md` starts as a pending A/B/C/D scorecard with verification commands, Evidence of Quality, and Verified Against; `evaluator-rubric.md` starts as a pending 1-5 review table with Overall score and Accept/Revise/Block conclusion; `clean-state-checklist.md` starts as a fillable clean-state checklist.
 - The generated `feature_list.json` starts with a passing `harness-bootstrap` entry, one not-started entry per construction iteration, and a transition/handoff entry.
+- Exported harness validation checks `progress.md` content markers and verifies that the transition/handoff feature entry references the actual transition iteration from `processManagement`.
 
 ### Settings and Status
 - Enable or disable LLM generation.

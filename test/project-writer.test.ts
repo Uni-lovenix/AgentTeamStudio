@@ -66,6 +66,9 @@ describe('project-writer', () => {
     expect(fs.existsSync(path.join(dir, 'clean-state-checklist.md'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'init.sh'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'docs', 'PROCESS.md'))).toBe(true);
+    const progress = fs.readFileSync(path.join(dir, 'progress.md'), 'utf-8');
+    expect(progress).toContain('# Session Progress Log -- Demo');
+    expect(progress).toContain('## Current State');
     const agentFiles = fs.readdirSync(path.join(dir, 'agents'));
     expect(agentFiles).toHaveLength(team.agents.length);
     expect(
@@ -294,6 +297,48 @@ describe('project-writer', () => {
     const secondContent = fs.readFileSync(agentsPath, 'utf-8');
     expect(secondResult.appendedFiles).toEqual([]);
     expect(secondContent.match(/使用智能体规则在 AGENTS\.team\.md 文件/g)).toHaveLength(1);
+  });
+
+  it('derives the transition feature from process management instead of hardcoded iteration ids', () => {
+    const dir = makeTempDir();
+    const base = buildTeamConfig({
+      projectName: 'Demo',
+      requirement: '一个跨平台桌面应用，用于生成多智能体团队配置。',
+    });
+    const originalTransition = base.processManagement.iterations.find(
+      (iteration) => iteration.phaseId === 'transition'
+    );
+    if (!originalTransition) throw new Error('fixture missing transition iteration');
+    const transitionIterationId = 'transition-final-acceptance';
+    const team = {
+      ...base,
+      processManagement: {
+        ...base.processManagement,
+        iterations: base.processManagement.iterations.map((iteration) =>
+          iteration.id === originalTransition.id
+            ? { ...iteration, id: transitionIterationId }
+            : iteration
+        ),
+      },
+    };
+
+    const result = new ProjectWriter().writeToDirectory(team, dir, false);
+    const featureList = JSON.parse(
+      fs.readFileSync(path.join(dir, 'feature_list.json'), 'utf-8')
+    );
+    const transitionFeature = featureList.features.find(
+      (feature: { rupPhase?: string }) => feature.rupPhase === 'transition'
+    );
+    const customTransition = team.processManagement.iterations.find(
+      (iteration) => iteration.id === transitionIterationId
+    );
+    const customOwnerRole = customTransition
+      ? team.agents.find((agent) => agent.id === customTransition.ownerRoleId)?.name ?? ''
+      : '';
+
+    expect(result.createdFiles).toContain('feature_list.json');
+    expect(transitionFeature.iteration).toBe(transitionIterationId);
+    expect(transitionFeature.ownerRole).toBe(customOwnerRole);
   });
 
   it('rejects a missing target directory', () => {

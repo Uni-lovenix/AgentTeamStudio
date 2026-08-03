@@ -495,6 +495,29 @@ export function validateGeneratedHarness(
     }
   }
 
+  const progressPath = path.join(absolute, 'progress.md');
+  if (fs.existsSync(progressPath)) {
+    const content = fs.readFileSync(progressPath, 'utf-8');
+    const progressCreated = createdFiles.includes('progress.md');
+    if (progressCreated && !content.includes(`-- ${team.projectName}`)) {
+      addError('progress.md', '新生成的 progress.md 缺少项目名');
+    }
+    if (!content.includes('Session Progress Log')) {
+      if (progressCreated) {
+        addError('progress.md', '新生成的 progress.md 缺少 Session Progress Log 标记');
+      } else {
+        addWarning('progress.md', '已有 progress.md 缺少 Session Progress Log 标记');
+      }
+    }
+    if (!content.includes('## Current State')) {
+      if (progressCreated) {
+        addError('progress.md', '新生成的 progress.md 缺少 Current State 标记');
+      } else {
+        addWarning('progress.md', '已有 progress.md 缺少 Current State 标记');
+      }
+    }
+  }
+
   for (const [scoringFile, marker] of [
     ['quality-document.md', '质量文档'],
     ['evaluator-rubric.md', '评审评分表'],

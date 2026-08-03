@@ -88,7 +88,7 @@ React 18 application bundled by Vite:
 
 1. User enables LLM and configures Base URL, model, protocol, and API key.
 2. `SettingsService` stores the API key encrypted with Electron `safeStorage`.
-3. `LlmClient` calls OpenAI-compatible `/chat/completions` or Anthropic-compatible `/v1/messages` from the main process.
+3. `LlmClient` calls OpenAI-compatible `/chat/completions` or Anthropic-compatible `/v1/messages` from the main process with a 60-second request timeout.
 4. `normalizeTeamConfig` validates the returned JSON and applies fallback defaults.
 5. `TeamConfigValidator` repairs required role kinds, IDs, workflow owners, and RUP references.
 6. On failure or invalid repaired output, `TeamGenerationService` falls back to requirement-driven local generation and returns a warning.
@@ -103,7 +103,7 @@ React 18 application bundled by Vite:
 6. `ProjectWriter` writes `AGENTS.team.md` as the team-level router, `agents.json`, and one Markdown file per agent under `agents/` atomically with temp-file rename.
 7. `ProjectWriter` uses `HarnessTemplates` to initialize missing `AGENTS.md`, `CLAUDE.md`, `feature_list.json`, `progress.md`, `session-handoff.md`, `quality-document.md`, `evaluator-rubric.md`, `clean-state-checklist.md`, `init.sh`, and `docs/PROCESS.md`; missing rule files are rendered as maps.
 8. For each existing rule file (`AGENTS.md`, `CLAUDE.md`), it appends only a pointer to `AGENTS.team.md` without overwriting existing rules.
-9. `TeamConfigValidator` validates the generated harness on disk; result is persisted on the local draft and shown in the status bar.
+9. `TeamConfigValidator` validates the generated harness on disk, including `progress.md` content markers and transition feature references; result is persisted on the local draft and shown in the status bar.
 
 ## IPC Channels
 

@@ -37,6 +37,12 @@ function currentIterationName(team: TeamConfig): string {
   );
 }
 
+function transitionIteration(team: TeamConfig) {
+  return team.processManagement.iterations.find(
+    (iteration) => iteration.phaseId === 'transition'
+  );
+}
+
 function safeFeatureId(value: string, fallbackIndex: number): string {
   const cleaned = value
     .toLowerCase()
@@ -121,6 +127,11 @@ export function renderFeatureList(team: TeamConfig): string {
   const constructionIterations = team.processManagement.iterations.filter(
     (iteration) => iteration.phaseId === 'construction'
   );
+  const transition = transitionIteration(team);
+  const transitionIterationId = transition?.id ?? '';
+  const transitionOwnerRole = transition
+    ? roleName(team, transition.ownerRoleId)
+    : '待分配';
   const featureIds: string[] = [];
   const constructionFeatures = constructionIterations.map((iteration, index) => {
     const id = safeFeatureId(iteration.id, index);
@@ -161,8 +172,8 @@ export function renderFeatureList(team: TeamConfig): string {
       status: 'not_started',
       evidence: '',
       rupPhase: 'transition',
-      iteration: 'transition-1',
-      ownerRole: roleName(team, team.processManagement.iterations.find((iteration) => iteration.id === 'transition-1')?.ownerRoleId),
+      iteration: transitionIterationId,
+      ownerRole: transitionOwnerRole,
     },
   ];
 
@@ -185,7 +196,7 @@ export function renderFeatureList(team: TeamConfig): string {
 }
 
 export function renderProgress(team: TeamConfig): string {
-  return `# Session Progress Log
+  return `# Session Progress Log -- ${team.projectName}
 
 ## Current State
 

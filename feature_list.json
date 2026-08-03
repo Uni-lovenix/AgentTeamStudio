@@ -178,6 +178,16 @@
       "testedAt": "2026-08-03T15:27:30Z",
       "rupPhase": "construction",
       "iteration": "harness-scoring-mechanism"
+    },
+    {
+      "id": "acceptance-hardening",
+      "name": "Acceptance Hardening Fixes",
+      "description": "Close scoring gaps before Accept: validate progress.md content on export, derive the transition feature from process management instead of hardcoded iteration IDs, and add LLM request timeouts.",
+      "status": "pass",
+      "evidence": "npm run check passed; npm test 39 tests passed; npm run build passed; benchmark 3/3 with progress marker PASS; cleanup scanner CLEAN; tests cover progress.md marker rejection, custom transition iteration ID propagation, and LLM generation/connection timeouts.",
+      "testedAt": "2026-08-03T15:43:44Z",
+      "rupPhase": "construction",
+      "iteration": "acceptance-hardening"
     }
   ]
 }

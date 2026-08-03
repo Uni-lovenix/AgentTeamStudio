@@ -149,4 +149,20 @@ describe('team-config-validator', () => {
       validation.errors.some((item) => item.path === 'clean-state-checklist.md')
     ).toBe(true);
   });
+
+  it('rejects a generated progress.md without the expected marker', () => {
+    const dir = makeTempDir();
+    const writer = new ProjectWriter();
+    const team = baseTeam();
+
+    const result = writer.writeToDirectory(team, dir, false);
+    fs.writeFileSync(path.join(dir, 'progress.md'), '# broken\n', 'utf-8');
+    const validation = validateGeneratedHarness(dir, team, [
+      ...result.createdFiles,
+      'progress.md',
+    ]);
+
+    expect(validation.ok).toBe(false);
+    expect(validation.errors.some((item) => item.path === 'progress.md')).toBe(true);
+  });
 });

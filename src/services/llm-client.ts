@@ -4,6 +4,7 @@ import { normalizeTeamConfig } from './requirement-analyzer';
 import { logger } from './logger';
 
 const SERVICE = 'llm-client';
+const LLM_TIMEOUT_MS = 60_000;
 const SYSTEM_PROMPT =
   '你是多智能体团队设计器。先分析需求的目标、用户、核心业务过程和约束，识别完成需求必须承担的责任区块，再据此生成团队。团队必须包含“规划者”和“评估者”：规划者负责任务分解、制定方案、流程协调，并在每个迭代开始前制定迭代协议；评估者按迭代协议校验开发者结果，发现问题反馈给开发者修改。每个责任区块对应一个开发者角色，开发者可以有多个。不要按前端、后端、数据库等实现功能拆分角色，也不要把需求功能模块直接当成角色，不要生成架构师、测试、部署或项目经理等额外 RUP 角色。过程管理采用轻量 RUP：启动、细化、构建、移交四个阶段，每个阶段有里程碑和退出标准，每个迭代有目标、范围、计划、交付物、退出标准和反馈目标。只输出 JSON，不要输出 Markdown 或解释。JSON 必须包含 schemaVersion=3、projectName、workflow、processManagement、agents、conventions 字段。agents 数组中的每个角色必须包含 id、kind、name、mission、responsibilities、skills、tools、deliverables、dependsOn、notifies；kind 只能是 planner、evaluator、developer、documentation、custom，且团队必须恰好一个 planner、恰好一个 evaluator、至少一个 developer。processManagement 必须包含 framework="rup"、currentPhaseId="inception"、phases 四个阶段、iterations 至少四个迭代；每个 phase 必须包含 id、name、purpose、goals、deliverables、milestone、exitCriteria、ownerRoleId、iterationIds；每个 iteration 必须包含 id、phaseId、name、objective、scope、plan、exitCriteria、deliverables、ownerRoleId、feedbackTargetRoleId、status。workflow 必须包含项目启动、制定迭代协议、迭代开发、评估与反馈、迭代复盘、阶段验收、移交验收步骤。';
 
@@ -19,6 +20,35 @@ function endpointFor(settings: LlmClientSettings): string {
     return `${base}/v1/messages`;
   }
   return `${base}/chat/completions`;
+}
+
+async function requestWithTimeout(
+  settings: LlmClientSettings,
+  body: unknown,
+  parseJson = true
+): Promise<unknown> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS);
+  try {
+    const response = await fetch(endpointFor(settings), {
+      method: 'POST',
+      headers: headersFor(settings),
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`LLM 请求失败 (${response.status}): ${errorBody.slice(0, 300)}`);
+    }
+    return parseJson ? await response.json() : undefined;
+  } catch (err) {
+    if (controller.signal.aborted) {
+      throw new Error(`LLM 请求超时（超过 ${LLM_TIMEOUT_MS / 1000} 秒）`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function headersFor(settings: LlmClientSettings): Record<string, string> {
@@ -85,16 +115,7 @@ export class LlmClient {
               { role: 'user', content: buildUserPrompt(input) },
             ],
           };
-    const response = await fetch(endpointFor(settings), {
-      method: 'POST',
-      headers: headersFor(settings),
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) {
-      const body = await response.text();
-      throw new Error(`LLM 请求失败 (${response.status}): ${body.slice(0, 300)}`);
-    }
-    const payload = (await response.json()) as {
+    const payload = (await requestWithTimeout(settings, body)) as {
       choices?: Array<{ message?: { content?: string } }>;
       content?: Array<{ type?: string; text?: string }>;
     };
@@ -120,7 +141,6 @@ export class LlmClient {
     if (!settings.apiKey) {
       return { ok: false, message: '未配置 API Key', latencyMs: 0 };
     }
-    let response: Response;
     try {
       const body =
         settings.protocol === 'anthropic'
@@ -134,11 +154,7 @@ export class LlmClient {
               max_tokens: 1,
               messages: [{ role: 'user', content: 'ping' }],
             };
-      response = await fetch(endpointFor(settings), {
-        method: 'POST',
-        headers: headersFor(settings),
-        body: JSON.stringify(body),
-      });
+      await requestWithTimeout(settings, body, false);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.log.warn('LLM connection test failed', {
@@ -152,19 +168,6 @@ export class LlmClient {
       };
     }
     const latencyMs = Date.now() - startedAt;
-    if (!response.ok) {
-      let detail = '';
-      try {
-        detail = await response.text();
-      } catch {
-        detail = '';
-      }
-      return {
-        ok: false,
-        message: `连接失败 (${response.status})${detail ? `: ${detail.slice(0, 300)}` : ''}`,
-        latencyMs,
-      };
-    }
     return {
       ok: true,
       message: '连接成功',

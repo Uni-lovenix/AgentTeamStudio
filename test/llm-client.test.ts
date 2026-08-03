@@ -24,6 +24,7 @@ const validPayload = {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe('llm-client', () => {
@@ -141,6 +142,62 @@ describe('llm-client', () => {
 
     expect(result.ok).toBe(false);
     expect(result.message).toContain('network down');
+  });
+
+  it('times out LLM generation requests', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init?: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+          })
+      )
+    );
+    const client = new LlmClient();
+
+    const promise = client.generateTeam(
+      {
+        enabled: true,
+        baseUrl: 'https://example.com/v1',
+        model: 'test',
+        protocol: 'openai',
+        apiKey: 'secret',
+      },
+      { requirement: '一个命令行工具，用于管理任务。' }
+    );
+    const assertion = expect(promise).rejects.toThrow(/LLM 请求超时/);
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    await assertion;
+  });
+
+  it('returns a timeout failure for connection tests', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init?: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+          })
+      )
+    );
+    const client = new LlmClient();
+
+    const promise = client.testConnection({
+      enabled: true,
+      baseUrl: 'https://example.com/v1',
+      model: 'test',
+      protocol: 'openai',
+      apiKey: 'secret',
+    });
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    const result = await promise;
+    expect(result.ok).toBe(false);
+    expect(result.message).toContain('LLM 请求超时');
   });
 
   it('returns a clear failure result when no API key is configured', async () => {

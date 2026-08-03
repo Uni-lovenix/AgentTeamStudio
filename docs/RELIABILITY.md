@@ -31,6 +31,7 @@ Set `LOG_LEVEL=DEBUG|INFO|WARN|ERROR` to control output. Default is DEBUG.
 - Keys are never written into target project directories.
 - If encryption is unavailable, saving an API key fails with a clear error.
 - LLM connection tests return structured failure results for missing keys, HTTP errors, and network failures so the renderer can display the reason.
+- LLM generation and connection requests use a 60-second timeout that also covers response parsing; timeout failures are returned as structured errors and trigger the normal local fallback path.
 
 ## Clean State Reset
 
@@ -66,7 +67,7 @@ Targets:
 - Generated team is schema v3 and every role has a valid `kind`.
 - Generated team contains RUP process management with four phases.
 - Generated workflow contains a project-start step, iteration-protocol step, and an evaluation/feedback step.
-- Generated harness passes on-disk validation, including `agents.json`, role files, rule maps, `quality-document.md`, `evaluator-rubric.md`, `clean-state-checklist.md`, and `init.sh`.
+- Generated harness passes on-disk validation, including `agents.json`, role files, rule maps, `progress.md` content markers, `quality-document.md`, `evaluator-rubric.md`, `clean-state-checklist.md`, and `init.sh`.
 
 ## Cross-Platform Packaging
 

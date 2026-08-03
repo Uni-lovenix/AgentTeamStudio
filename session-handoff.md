@@ -7,9 +7,20 @@
 - 标准验证路径：`npm run check`、`npm test`、`npm run build`
 - 当前最高优先级未完成功能：无阻塞项
 - 当前 blocker：无
-- 当前 RUP 阶段：构建（Construction），本轮迭代：`harness-scoring-mechanism`
+- 当前 RUP 阶段：构建（Construction），本轮迭代：`acceptance-hardening`
 
 ## 会话记录
+
+### Session 2026-08-03 Accept 前修复
+
+- 日期：2026-08-03
+- 迭代目标：根据打分结果补齐三项缺口后进入 Accept：`progress.md` 检查、transition 迭代硬编码、LLM 超时。
+- 已完成：`TeamConfigValidator` 对新建/已有 `progress.md` 检查项目名、Session Progress Log 和 Current State 标记；`HarnessTemplates.renderFeatureList` 改为从 `processManagement` 动态查找 transition 迭代；`LlmClient` 增加 60 秒请求超时，覆盖生成与连接测试；benchmark 和文档同步更新。
+- 运行过的验证：`npm run check`、`npm test`（39 个用例）、`npm run build`、`bash scripts/benchmark.sh`（3/3，progress marker PASS）、`bash scripts/cleanup-scanner.sh`（CLEAN）
+- 验收结论：Accept（`evaluator-rubric.md` 已填写 5/5，并勾选 Accept）
+- 更新过的文件或工件：`src/services/llm-client.ts`、`src/services/harness-templates.ts`、`src/services/team-config-validator.ts`、`scripts/benchmark.cjs`、`test/llm-client.test.ts`、`test/project-writer.test.ts`、`test/team-config-validator.test.ts`、`README.md`、`docs/ARCHITECTURE.md`、`docs/PRODUCT.md`、`docs/RELIABILITY.md`、`docs/quality-document.md`、`evaluator-rubric.md`、`feature_list.json`、`session-handoff.md`
+- 已知风险或未解决问题：无新增 blocker；Windows 实际安装冒烟仍需 Windows/CI 环境。
+- 下一步最佳动作：以当前 `feature_list.json` 和评审表作为 Accept 基线，继续下一阶段验收或迭代。
 
 ### Session 2026-08-03 Harness 评分机制与干净状态清单
 
