@@ -73,6 +73,11 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 - Test provider connection.
 - Status bar shows project count, LLM state, key state, and recent activity.
 
+### Automated Verification
+- Renderer critical workflows are covered by jsdom/Testing Library smoke tests: create draft, generate team, edit role, add custom role, select target directory, validate, and export.
+- A main-process smoke mode verifies window load, 15 IPC registrations, local generation, export, and harness validation in an isolated user data directory.
+- A Windows CI workflow is available to build and install the NSIS package and run the same smoke mode on a Windows runner.
+
 ## User Interface
 
 The first screen is the working tool: left sidebar for project drafts, center area for requirement input, generation log and editable team preview, right rail for export, and a bottom status bar. The UI is in Chinese.

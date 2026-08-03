@@ -16,7 +16,7 @@ No separate RUP roles such as architect, tester, deployment engineer, or project
 bash init.sh            # install, check, test, build, verify harness
 npm run dev             # build and launch Electron
 npm run check           # strict TypeScript checks
-npm test                # Vitest unit tests
+npm test                # Vitest tests: services + renderer critical workflow smoke
 npm run build           # compile main/preload/renderer
 npm run dist:mac        # package macOS
 npm run dist:win        # package Windows

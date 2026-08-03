@@ -153,7 +153,7 @@ LLM 返回结果会经过结构校验。如果请求失败、超时或返回格�
 | --- | --- |
 | `npm run dev` | 构建并启动 Electron 应用 |
 | `npm run check` | 运行严格 TypeScript 类型检查 |
-| `npm test` | 运行 Vitest 单元测试 |
+| `npm test` | 运行 Vitest 服务测试和 Renderer 关键流程冒烟测试 |
 | `npm run build` | 构建 main、preload 和 renderer |
 | `npm run dist:mac` | 打包 macOS 应用 |
 | `npm run dist:win` | 打包 Windows 应用 |
@@ -169,7 +169,7 @@ src/
   renderer/    React 中文界面
   services/    业务逻辑、持久化、LLM、导出
   shared/      共享类型和 IPC channel 定义
-test/          Vitest 单元测试
+test/          Vitest 服务测试和 Renderer 关键流程冒烟测试
 docs/          架构、产品、可靠性、RUP 过程、质量文档
 scripts/       开发、基准、清理脚本
 ```
@@ -179,12 +179,19 @@ scripts/       开发、基准、清理脚本
 当前仓库已通过以下验证：
 
 - `npm run check`
-- `npm test`（35 个测试用例）
+- `npm test`（43 个测试用例，含 3 个 Renderer 关键流程冒烟）
 - `npm run build`
 - `bash init.sh`
 - `bash scripts/benchmark.sh`（3/3）
 - `npm run dev` Electron 窗口启动
+- `AGENT_TEAM_STUDIO_SMOKE=1` Electron 自动冒烟：15 个 IPC、窗口加载、团队生成、导出和 harness 校验通过
 - `npm run dist:mac` macOS ZIP 应用包构建
 - `npm run dist:win` Windows x64/ARM64 NSIS 安装包构建
 
 Windows x64/ARM64 安装包可通过 `npm run dist:win` 在本地 `dist/` 目录生成；实际 Windows 系统上的安装和冒烟测试仍建议在 Windows 或 CI 环境执行。
+
+## Windows CI 冒烟
+
+`.github/workflows/windows-smoke.yml` 会在 Windows runner 上执行 `npm run dist:win`，然后通过 `scripts/windows-smoke.ps1` 静默安装 x64 NSIS 包并启动已安装应用。应用内置的 `AGENT_TEAM_STUDIO_SMOKE=1` 模式会验证 15 个 IPC 注册、窗口加载、本地团队生成、导出和 harness 校验，并写入 JSON 结果。
+
+该工作流需要在 GitHub Actions 的 Windows runner 上实际运行一次后，才能把 Windows 实机/CI 冒烟登记为通过。

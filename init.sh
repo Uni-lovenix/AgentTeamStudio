@@ -17,7 +17,7 @@ npm run build
 echo ""
 echo "[5/6] Verifying harness files..."
 FILES_OK=true
-for file in README.md AGENTS.md CLAUDE.md feature_list.json clean-state-checklist.md session-handoff.md evaluator-rubric.md docs/quality-document.md docs/ARCHITECTURE.md docs/PRODUCT.md docs/RELIABILITY.md docs/PROCESS.md scripts/dev.js scripts/benchmark.sh scripts/cleanup-scanner.sh init.sh; do
+for file in README.md AGENTS.md CLAUDE.md feature_list.json clean-state-checklist.md session-handoff.md evaluator-rubric.md docs/quality-document.md docs/ARCHITECTURE.md docs/PRODUCT.md docs/RELIABILITY.md docs/PROCESS.md scripts/dev.js scripts/benchmark.sh scripts/cleanup-scanner.sh scripts/windows-smoke.ps1 .github/workflows/windows-smoke.yml init.sh; do
   if [ ! -f "$file" ]; then
     echo "  MISSING: $file"
     FILES_OK=false

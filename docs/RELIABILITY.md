@@ -50,6 +50,13 @@ The in-app Reset button and `app:reset` IPC:
 - Detects an unbundled sandbox preload and missing service/shared build outputs when `dist/` exists.
 - Reports missing build or harness artifacts.
 
+## Renderer and Windows Smoke
+
+- `test/renderer-smoke.test.tsx` runs in jsdom with Testing Library and exercises the renderer critical path: draft creation, team generation, role editing, custom role addition, target selection, validation, and export.
+- `test/ipc-channels.test.ts` enforces the documented 15 IPC channel count.
+- `AGENT_TEAM_STUDIO_SMOKE=1` switches the Electron main process into an isolated smoke mode that verifies window load, IPC registration, local generation, export, and harness validation.
+- `.github/workflows/windows-smoke.yml` and `scripts/windows-smoke.ps1` build, install, launch, and verify the packaged Windows application. The workflow must be executed on a Windows runner before Windows smoke evidence is recorded as passed.
+
 ## Benchmarking
 
 `bash scripts/benchmark.sh` runs the production build and then measures:

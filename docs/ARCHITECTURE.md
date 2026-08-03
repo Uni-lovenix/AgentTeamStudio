@@ -151,3 +151,10 @@ clean-state-checklist.md # fillable clean-state checklist
 init.sh           # standard startup and verification path
 docs/PROCESS.md   # RUP phases, milestones, and iteration protocol
 ```
+
+## Automated Verification
+
+- `test/renderer-smoke.test.tsx` uses jsdom and Testing Library to cover the renderer critical path: creating a draft, generating a team, editing roles, adding a custom role, selecting a target directory, validating, and writing the exported harness.
+- `test/ipc-channels.test.ts` keeps the IPC channel count locked to the documented 15 channels.
+- Main process smoke mode (`AGENT_TEAM_STUDIO_SMOKE=1`) uses an isolated `userData` directory and verifies window load, all IPC registrations, local generation, export, and on-disk harness validation.
+- `.github/workflows/windows-smoke.yml` builds and installs the Windows package, then `scripts/windows-smoke.ps1` launches the installed app in smoke mode.

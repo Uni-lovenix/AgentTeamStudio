@@ -188,6 +188,16 @@
       "testedAt": "2026-08-03T15:43:44Z",
       "rupPhase": "construction",
       "iteration": "acceptance-hardening"
+    },
+    {
+      "id": "renderer-ui-smoke",
+      "name": "Renderer Critical Workflow Smoke Tests",
+      "description": "Automated renderer validation covers creating a draft, generating a team, editing roles, adding a custom role, selecting a target directory, validating, and exporting instead of relying only on manual verification.",
+      "status": "pass",
+      "evidence": "npm test passed 43 tests; test/renderer-smoke.test.tsx exercises the renderer critical path with jsdom/Testing Library; test/ipc-channels.test.ts locks the documented 15 IPC channels; AGENT_TEAM_STUDIO_SMOKE=1 Electron smoke passed with isolated userData, verifying 15 IPC registrations, window load, generation, export, and harness validation.",
+      "testedAt": "2026-08-03T17:10:00Z",
+      "rupPhase": "construction",
+      "iteration": "renderer-automation"
     }
   ]
 }

@@ -5,11 +5,30 @@
 - 仓库根目录：`/Users/paul/projects/alpha`
 - 标准启动路径：`bash init.sh`、`npm run dev`
 - 标准验证路径：`npm run check`、`npm test`、`npm run build`
-- 当前最高优先级未完成功能：无阻塞项
+- 当前最高优先级未完成功能：Windows/CI 实跑冒烟
 - 当前 blocker：无
-- 当前 RUP 阶段：构建（Construction），本轮迭代：`acceptance-hardening`
+- 后续待办：见 `TODO.md`（Windows/CI 冒烟需在 Windows runner 实跑）
+- 当前 RUP 阶段：构建（Construction），本轮迭代：`renderer-automation`
 
 ## 会话记录
+
+### Session 2026-08-03 Renderer 自动化与 Windows 冒烟准备
+
+- 日期：2026-08-03
+- 迭代目标：按 `TODO.md` 补齐 Renderer 自动化验证，同步 README 验证状态，并准备 Windows/CI 冒烟路径。
+- 已完成：新增 `test/renderer-smoke.test.tsx`，用 jsdom/Testing Library 覆盖新建草稿、生成团队、编辑角色、添加角色、选择目录、校验和导出；新增 `test/ipc-channels.test.ts` 锁定 15 个 IPC；README 测试数从 35 更新为 43；新增 `.github/workflows/windows-smoke.yml`、`scripts/windows-smoke.ps1` 和主进程 `AGENT_TEAM_STUDIO_SMOKE=1` 冒烟模式；本地 Electron 冒烟通过（15 IPC、窗口加载、生成、导出、harness 校验）。
+- 运行过的验证：`npm run check`、`npm test`（43 个用例）、`npm run build`、本地 `AGENT_TEAM_STUDIO_SMOKE=1` Electron 冒烟（passed）、`bash init.sh`、`bash scripts/benchmark.sh`、`bash scripts/cleanup-scanner.sh`。
+- 已知风险或未解决问题：Windows/CI 冒烟工作流和脚本已就绪，但尚未在 Windows runner 上实际安装并运行，需在下一次 Windows/CI 执行后登记通过。
+- 更新过的文件或工件：`package.json`、`package-lock.json`、`vitest.config.ts`、`test/renderer-smoke.test.tsx`、`test/ipc-channels.test.ts`、`src/main/main.ts`、`scripts/windows-smoke.ps1`、`.github/workflows/windows-smoke.yml`、`README.md`、`docs/ARCHITECTURE.md`、`docs/PRODUCT.md`、`docs/RELIABILITY.md`、`docs/quality-document.md`、`feature_list.json`、`TODO.md`、`session-handoff.md`
+
+### Session 2026-08-03 独立评分并登记待办
+
+- 日期：2026-08-03
+- 迭代目标：独立复核当前项目，并把扣分项写入后续 TODO。
+- 已完成：独立评分总体 4.7/5；新增 `TODO.md`；`session-handoff.md` 增加指向 `TODO.md` 的后续待办。
+- 运行过的验证：`bash init.sh` 全通过；`npm test`（39 个用例）；`bash scripts/benchmark.sh`（3/3）；非沙箱 Electron 冒烟通过。
+- 已知风险或未解决问题：无新增 blocker；Renderer 自动化验证、Windows/CI 冒烟、README 测试数同步三项待办均未完成。
+- 下一步最佳动作：从 `TODO.md` 第一项开始处理。
 
 ### Session 2026-08-03 Accept 前修复
 
