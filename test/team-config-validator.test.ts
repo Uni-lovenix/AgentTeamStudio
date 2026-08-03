@@ -131,4 +131,22 @@ describe('team-config-validator', () => {
     expect(validation.ok).toBe(true);
     expect(validation.errors).toEqual([]);
   });
+
+  it('rejects a generated clean-state-checklist without the expected marker', () => {
+    const dir = makeTempDir();
+    const writer = new ProjectWriter();
+    const team = baseTeam();
+
+    const result = writer.writeToDirectory(team, dir, false);
+    fs.writeFileSync(path.join(dir, 'clean-state-checklist.md'), '# broken\n', 'utf-8');
+    const validation = validateGeneratedHarness(dir, team, [
+      ...result.createdFiles,
+      'clean-state-checklist.md',
+    ]);
+
+    expect(validation.ok).toBe(false);
+    expect(
+      validation.errors.some((item) => item.path === 'clean-state-checklist.md')
+    ).toBe(true);
+  });
 });

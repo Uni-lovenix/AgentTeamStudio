@@ -44,6 +44,9 @@ const harnessFilesPresent = [
   'feature_list.json',
   'progress.md',
   'session-handoff.md',
+  'quality-document.md',
+  'evaluator-rubric.md',
+  'clean-state-checklist.md',
   'init.sh',
   'docs/PROCESS.md',
 ].every((file) => fs.existsSync(path.join(dir, file)));
@@ -59,6 +62,15 @@ const agentsRulesMap = fs
 const claudeRulesMap = fs
   .readFileSync(path.join(dir, 'CLAUDE.md'), 'utf-8')
   .includes('## 智能体地图');
+const qualityEvidence = fs
+  .readFileSync(path.join(dir, 'quality-document.md'), 'utf-8')
+  .includes('Evidence of Quality');
+const rubricScale = fs
+  .readFileSync(path.join(dir, 'evaluator-rubric.md'), 'utf-8')
+  .includes('分数 (1-5)');
+const cleanStateChecklist = fs
+  .readFileSync(path.join(dir, 'clean-state-checklist.md'), 'utf-8')
+  .includes('干净状态检查清单');
 fs.rmSync(dir, { recursive: true, force: true });
 
 const analyzeAvgMs = analyze.durationMs / 5;
@@ -96,6 +108,9 @@ const validatePass =
   harnessValidation.ok &&
   agentsRulesMap &&
   claudeRulesMap &&
+  qualityEvidence &&
+  rubricScale &&
+  cleanStateChecklist &&
   hasRoleKinds &&
   hasSchemaV3;
 const analyzePass = analyzeAvgMs < 500;
@@ -108,5 +123,6 @@ console.log(`[validate] generated agents: ${agentCount}, planner=${hasPlanner}, 
 console.log(`[validate] harness files: ${harnessFilesPresent ? 'PASS' : 'FAIL'}`);
 console.log(`[validate] generated harness: ${harnessValidation.ok ? 'PASS' : 'FAIL'}`);
 console.log(`[validate] rule maps: AGENTS=${agentsRulesMap}, CLAUDE=${claudeRulesMap} ${agentsRulesMap && claudeRulesMap ? 'PASS' : 'FAIL'}`);
+console.log(`[validate] scoring harness: quality=${qualityEvidence}, rubric=${rubricScale}, checklist=${cleanStateChecklist} ${qualityEvidence && rubricScale && cleanStateChecklist ? 'PASS' : 'FAIL'}`);
 console.log(`=== Summary: ${passed ? '3/3 tasks passed' : 'benchmark failed'} ===`);
 process.exit(passed ? 0 : 1);

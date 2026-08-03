@@ -6,6 +6,9 @@ export const HARNESS_FILE_PATHS = [
   'feature_list.json',
   'progress.md',
   'session-handoff.md',
+  'quality-document.md',
+  'evaluator-rubric.md',
+  'clean-state-checklist.md',
   'init.sh',
   'docs/PROCESS.md',
 ] as const;
@@ -60,6 +63,9 @@ function ruleMapSection(): string {
 - \`feature_list.json\`：功能状态追踪。
 - \`progress.md\`：会话进度和当前已验证状态。
 - \`session-handoff.md\`：跨会话交接记录。
+- \`quality-document.md\`：质量快照、评级标准和待补证据。
+- \`evaluator-rubric.md\`：迭代验收前的评分表和结论。
+- \`clean-state-checklist.md\`：会话结束前和提交前要完成的干净状态检查。
 - \`docs/PROCESS.md\`：RUP 阶段、迭代协议和退出标准。
 `;
 }
@@ -137,7 +143,7 @@ export function renderFeatureList(team: TeamConfig): string {
     {
       id: 'harness-bootstrap',
       name: 'Harness and Team Bootstrap',
-      description: '初始化 RUP harness 文件、多智能体团队配置和规则入口。',
+      description: '初始化 RUP harness 文件、评分文件、多智能体团队配置和规则入口。',
       dependencies: [],
       status: 'pass',
       evidence: `已生成 ${HARNESS_FILE_PATHS.join('、')}、AGENTS.team.md、agents.json 和 agents/ 角色文件。`,
@@ -193,6 +199,7 @@ export function renderProgress(team: TeamConfig): string {
 ### What's Done
 
 - [x] RUP harness 和团队配置已初始化。
+- [x] \`quality-document.md\`、\`evaluator-rubric.md\` 和 \`clean-state-checklist.md\` 已初始化。
 - [x] \`AGENTS.team.md\`、\`agents.json\`、\`agents/\` 已生成。
 - [x] \`AGENTS.md\` / \`CLAUDE.md\` 默认规则入口已初始化。
 
@@ -236,6 +243,7 @@ export function renderSessionHandoff(team: TeamConfig): string {
 
 - [x] 生成了多智能体团队配置。
 - [x] 初始化了 RUP harness 文件。
+- [x] 初始化了 \`quality-document.md\`、\`evaluator-rubric.md\` 和 \`clean-state-checklist.md\`。
 - [x] 初始化了 \`AGENTS.md\` 和 \`CLAUDE.md\` 规则入口。
 
 ## Verification Evidence
@@ -244,7 +252,7 @@ export function renderSessionHandoff(team: TeamConfig): string {
 |---|---|---|---|
 | 团队配置存在 | \`ls AGENTS.team.md agents.json\` | 待填写 | 由 Agent Team Studio 生成 |
 | 角色文件存在 | \`ls agents\` | 待填写 | 每个角色一个文件 |
-| Harness 文件存在 | \`ls AGENTS.md CLAUDE.md feature_list.json progress.md init.sh docs/PROCESS.md\` | 待填写 | 缺失时自动创建 |
+| Harness 文件存在 | \`ls AGENTS.md CLAUDE.md feature_list.json progress.md quality-document.md evaluator-rubric.md clean-state-checklist.md init.sh docs/PROCESS.md\` | 待填写 | 缺失时自动创建 |
 | 标准验证 | \`bash init.sh\` | 待填写 | 进入实现前必须运行 |
 
 ## Files Changed
@@ -257,6 +265,9 @@ export function renderSessionHandoff(team: TeamConfig): string {
 - \`feature_list.json\`
 - \`progress.md\`
 - \`session-handoff.md\`
+- \`quality-document.md\`
+- \`evaluator-rubric.md\`
+- \`clean-state-checklist.md\`
 - \`init.sh\`
 - \`docs/PROCESS.md\`
 
@@ -330,6 +341,232 @@ ${iterationRows}
 `;
 }
 
+const QUALITY_DIMENSIONS = [
+  ['构建与编译', '类型检查、构建与项目自有验证脚本能否无错运行。'],
+  ['功能完整性', '需求目标、用户价值与责任区块是否都得到实现和验证。'],
+  ['需求与团队配置', '规划者、评估者、开发者角色与需求责任区块是否匹配。'],
+  ['RUP 过程管理', '启动、细化、构建、移交阶段和迭代协议是否可追溯。'],
+  ['协作与评估闭环', '迭代协议、开发、评估反馈、复盘和阶段验收是否闭环。'],
+  ['规则地图与角色文件', 'AGENTS.md / CLAUDE.md 是否能按地图定位并读取单个角色文件。'],
+  ['导出 Harness', 'AGENTS.team.md、agents.json、评分文件和状态文件是否完整一致。'],
+  ['验证与证据', 'feature_list.json、progress.md 和评分表是否记录真实证据。'],
+  ['文档与交接', '架构、产品、可靠性说明和 session-handoff 是否足够下一会话继续。'],
+] as const;
+
+export function renderQualityDocument(team: TeamConfig): string {
+  const rows = QUALITY_DIMENSIONS.map(
+    ([dimension, gap]) =>
+      `| ${dimension} | 待评估 | 待验证 | 待评估 | 待评估 | ${gap} | ${team.createdAt} |`
+  ).join('\n');
+
+  return `# 质量文档 -- ${team.projectName}
+
+> 本文件由 Agent Team Studio 生成，是项目质量快照和评分入口。每轮重要会话结束后，或开始新一阶段工作前更新。
+
+## 评级标准
+
+- **A**：验证全部通过，架构干净，agent 能读懂，测试稳定。
+- **B**：验证通过，基本干净，可读性或测试覆盖有少量缺口。
+- **C**：部分可用，有已知缺口，部分代码 agent 不容易理解。
+- **D**：不可用，或存在重大结构问题。
+
+## 评分汇总
+
+| 维度 | 评级 | 验证状态 | Agent 可读性 | 测试稳定性 | 关键缺口 | 上次更新 |
+|------|------|---------|-------------|-----------|---------|---------|
+${rows}
+
+## Overall Grade: 待评估
+
+## 当前快照
+
+- 项目：${team.projectName}
+- 需求：${team.requirement}
+- 生成方式：${team.generatedBy === 'llm' ? 'LLM 辅助生成' : '需求驱动生成'}
+- 当前 RUP 阶段：${team.processManagement.currentPhaseId}
+- 当前迭代：${currentIterationName(team)}
+- 智能体数量：${team.agents.length}
+- 已生成文件：${HARNESS_FILE_PATHS.join('、')}、AGENTS.team.md、agents.json、agents/
+
+## 验证命令
+
+按目标项目实际可用脚本执行，并把结果填入验证状态：
+
+- \`npm run check\`
+- \`npm test\`
+- \`npm run build\`
+- \`bash init.sh\`
+- \`bash scripts/benchmark.sh\`（如存在）
+- \`bash scripts/cleanup-scanner.sh\`（如存在）
+
+## Evidence of Quality
+
+### Build
+
+- 类型检查与构建：待填写
+- 项目自有验证脚本：待填写
+- Harness 初始化：待填写
+
+### Runtime
+
+- 应用启动和核心流程：待填写
+- 团队配置导出：待填写
+- 状态文件与评分文件更新：待填写
+
+### Observability
+
+- 结构化日志覆盖：待填写
+- 关键服务事件证据：待填写
+
+### Performance
+
+- \`bash scripts/benchmark.sh\` 结果：待填写
+- 本地分析与导出耗时：待填写
+
+## Verified Against
+
+| 证据 | 状态 |
+| --- | --- |
+| \`clean-state-checklist.md\` | 待验证 |
+| \`evaluator-rubric.md\` | 待填写 |
+| \`feature_list.json\` | 待填写 |
+| \`bash scripts/benchmark.sh\` | 待运行 |
+| \`bash scripts/cleanup-scanner.sh\` | 待运行 |
+`;
+}
+
+const EVALUATOR_RUBRIC_DIMENSIONS = [
+  ['正确性', '实现出来的行为是否符合目标功能和迭代协议？'],
+  ['验证', '要求的检查是否真的跑过，并留下证据？'],
+  ['范围纪律', '这一轮是否基本保持在选定功能范围内？'],
+  ['可靠性', '结果是否能在重启或重跑后继续工作？'],
+  ['可维护性', '代码和文档是否清楚到足以交给下一轮会话？'],
+  ['交接准备度', '新会话是否能只靠仓库内工件继续推进？'],
+] as const;
+
+export function renderEvaluatorRubric(team: TeamConfig): string {
+  const evaluatorId = team.agents.find((agent) => agent.kind === 'evaluator')?.id;
+  const rows = EVALUATOR_RUBRIC_DIMENSIONS.map(
+    ([dimension, question]) =>
+      `| ${dimension} | ${question} |  |  |`
+  ).join('\n');
+  const harnessFileRows = ['AGENTS.team.md', 'agents.json', ...HARNESS_FILE_PATHS, 'agents/<角色文件>']
+    .map((file) => `| \`${file}\` | 是 | 待评估 | 由 Agent Team Studio 初始化 |`)
+    .join('\n');
+
+  return `# 评审评分表 -- ${team.projectName}
+
+> 本文件由 Agent Team Studio 生成。评估者在迭代验收前按迭代协议填写，并作为质量文档的评审证据。
+
+## 当前评审上下文
+
+- 当前 RUP 阶段：${team.processManagement.currentPhaseId}
+- 当前迭代：${currentIterationName(team)}
+- 评估者：${roleName(team, evaluatorId)}
+
+## 评分规则
+
+- **5 分**：满足全部验收证据，无需修订。
+- **4 分**：核心满足，仅存在少量非阻塞打磨项。
+- **3 分**：核心基本满足，需要计划内修订并复审。
+- **2 分**：存在明显缺口，验收前必须修订。
+- **1 分**：存在阻塞问题，当前不可验收。
+
+## 评分维度
+
+| 维度 | 问题 | 分数 (1-5) | 备注 |
+| --- | --- | --- | --- |
+${rows}
+
+## 总体评分
+
+**Overall: 待评估 / 5**
+
+## Harness 文件评估
+
+| 文件 | Present | Quality | Notes |
+| --- | --- | --- | --- |
+${harnessFileRows}
+
+## 结论
+
+- [ ] Accept
+- [ ] Revise
+- [ ] Block
+
+## Summary
+
+本轮迭代的验收结论、关键风险和遗留事项由评估者填写。
+
+## 后续动作
+
+- 缺失的证据：
+- 必须补的修复：
+- 下次复审触发条件：
+`;
+}
+
+export function renderCleanStateChecklist(team: TeamConfig): string {
+  return `# 干净状态检查清单 -- ${team.projectName}
+
+> 本文件由 Agent Team Studio 生成。提交前和每轮重要会话结束时检查，并把结果作为质量文档的证据。
+
+## 当前快照
+
+- 当前 RUP 阶段：${team.processManagement.currentPhaseId}
+- 当前迭代：${currentIterationName(team)}
+
+## Build & Verification
+
+- [ ] \`npm run check\` 通过且没有类型错误
+- [ ] \`npm run test\` 通过
+- [ ] \`npm run build\` 通过
+- [ ] \`bash init.sh\` 通过（如存在）
+
+## Harness Integrity
+
+- [ ] \`AGENTS.team.md\`、\`agents.json\`、\`agents/\` 存在且路由一致
+- [ ] \`feature_list.json\` 反映真实功能状态
+- [ ] \`progress.md\` 和 \`session-handoff.md\` 已更新
+- [ ] \`quality-document.md\`、\`evaluator-rubric.md\` 已填写或明确标注待评估
+- [ ] \`bash scripts/cleanup-scanner.sh\` 报告 clean（如存在）
+
+## Architecture Boundaries
+
+- [ ] 渲染层没有直接导入 Node.js 模块（仅当项目是 Electron）
+- [ ] IPC channel 只定义在共享类型源中（仅当项目是 Electron）
+- [ ] 文件系统和对话框只存在于主进程（仅当项目是 Electron）
+
+## Runtime & Clean State
+
+- [ ] 应用可以启动并进入核心工作流
+- [ ] 本地草稿和设置可以重置，且不修改目标项目文件
+- [ ] 导出后的 harness 通过落盘校验
+
+## Observability
+
+- [ ] 日志是结构化 JSON 且包含 timestamp、level、service、message
+- [ ] 关键操作留下了可复核的日志和证据
+
+## Data & State
+
+- [ ] 没有未记录的半成品状态
+- [ ] 当前进度与 \`feature_list.json\` 和 \`progress.md\` 一致
+- [ ] 下一轮会话无需人工修复即可继续
+
+## Performance
+
+- [ ] \`bash scripts/benchmark.sh\` 完成全部任务（如存在）
+- [ ] 本地分析、导出和验证耗时符合当前项目目标
+
+## Repository
+
+- [ ] git status 没有意外文件
+- [ ] 没有敏感数据或密钥被提交
+- [ ] 构建产物没有被提交（如 \`dist/\`）
+`;
+}
+
 export function renderInitScript(): string {
   return `#!/usr/bin/env bash
 set -euo pipefail
@@ -338,7 +575,7 @@ echo "=== Agent Team Studio Harness Init ==="
 echo ""
 
 MISSING=false
-for file in AGENTS.md CLAUDE.md AGENTS.team.md agents.json feature_list.json progress.md session-handoff.md init.sh docs/PROCESS.md; do
+for file in AGENTS.md CLAUDE.md AGENTS.team.md agents.json feature_list.json progress.md session-handoff.md quality-document.md evaluator-rubric.md clean-state-checklist.md init.sh docs/PROCESS.md; do
   if [ ! -f "$file" ]; then
     echo "  MISSING: $file"
     MISSING=true

@@ -375,6 +375,9 @@ export function validateGeneratedHarness(
     'feature_list.json',
     'progress.md',
     'session-handoff.md',
+    'quality-document.md',
+    'evaluator-rubric.md',
+    'clean-state-checklist.md',
     'init.sh',
     'docs/PROCESS.md',
   ];
@@ -489,6 +492,26 @@ export function validateGeneratedHarness(
       addError('docs/PROCESS.md', 'docs/PROCESS.md 缺少迭代协议');
     } else {
       addWarning('docs/PROCESS.md', '已有 docs/PROCESS.md 缺少迭代协议');
+    }
+  }
+
+  for (const [scoringFile, marker] of [
+    ['quality-document.md', '质量文档'],
+    ['evaluator-rubric.md', '评审评分表'],
+    ['clean-state-checklist.md', '干净状态检查清单'],
+  ] as const) {
+    const scoringPath = path.join(absolute, scoringFile);
+    if (!fs.existsSync(scoringPath)) continue;
+    const content = fs.readFileSync(scoringPath, 'utf-8');
+    if (createdFiles.includes(scoringFile)) {
+      if (!content.includes(`-- ${team.projectName}`)) {
+        addError(scoringFile, `新生成的 ${scoringFile} 缺少项目名`);
+      }
+      if (!content.includes(marker)) {
+        addError(scoringFile, `新生成的 ${scoringFile} 缺少${marker}标记`);
+      }
+    } else if (!content.includes(marker)) {
+      addWarning(scoringFile, `已有 ${scoringFile} 缺少${marker}标记`);
     }
   }
 

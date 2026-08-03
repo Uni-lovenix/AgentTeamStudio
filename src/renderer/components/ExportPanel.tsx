@@ -30,7 +30,7 @@ export function ExportPanel({
       <div className="export-note">agents.json（schema v3）</div>
       <div className="export-note">agents/ 每角色一个 md</div>
       <div className="export-note">AGENTS.md / CLAUDE.md（缺失时初始化，存在时追加）</div>
-      <div className="export-note">harness：feature_list / progress / handoff / init / PROCESS</div>
+      <div className="export-note">harness：feature_list / progress / handoff / quality-document / evaluator-rubric / clean-state-checklist / init / PROCESS</div>
       <button
         className="primary-button export-button"
         type="button"

@@ -101,7 +101,7 @@ React 18 application bundled by Vite:
 4. Renderer calls `team.validate` to repair the team and block unfixable validation errors before prompting overwrite.
 5. Renderer calls `team.write`.
 6. `ProjectWriter` writes `AGENTS.team.md` as the team-level router, `agents.json`, and one Markdown file per agent under `agents/` atomically with temp-file rename.
-7. `ProjectWriter` uses `HarnessTemplates` to initialize missing `AGENTS.md`, `CLAUDE.md`, `feature_list.json`, `progress.md`, `session-handoff.md`, `init.sh`, and `docs/PROCESS.md`; missing rule files are rendered as maps.
+7. `ProjectWriter` uses `HarnessTemplates` to initialize missing `AGENTS.md`, `CLAUDE.md`, `feature_list.json`, `progress.md`, `session-handoff.md`, `quality-document.md`, `evaluator-rubric.md`, `clean-state-checklist.md`, `init.sh`, and `docs/PROCESS.md`; missing rule files are rendered as maps.
 8. For each existing rule file (`AGENTS.md`, `CLAUDE.md`), it appends only a pointer to `AGENTS.team.md` without overwriting existing rules.
 9. `TeamConfigValidator` validates the generated harness on disk; result is persisted on the local draft and shown in the status bar.
 
@@ -117,7 +117,7 @@ React 18 application bundled by Vite:
 | `team:generate` | R -> M | Generate team config |
 | `team:inspect` | R -> M | Inspect target directory files |
 | `team:validate` | R -> M | Repair and validate a team before export |
-| `team:write` | R -> M | Write `AGENTS.team.md`, `agents.json`, `agents/*.md`, and missing core RUP harness files; append only a pointer to existing `AGENTS.md` / `CLAUDE.md` |
+| `team:write` | R -> M | Write `AGENTS.team.md`, `agents.json`, `agents/*.md`, and missing core RUP harness/scoring files; append only a pointer to existing `AGENTS.md` / `CLAUDE.md` |
 | `dialog:select-directory` | R -> M | Open native directory picker |
 | `settings:get` | R -> M | Get LLM settings snapshot |
 | `settings:save` | R -> M | Save LLM settings |
@@ -145,6 +145,9 @@ CLAUDE.md         # initialized Claude rule/agent map; existing files only recei
 feature_list.json # RUP feature state tracker
 progress.md       # session progress and next action
 session-handoff.md# cross-session handoff
+quality-document.md # fillable quality scorecard
+evaluator-rubric.md # fillable iteration review rubric
+clean-state-checklist.md # fillable clean-state checklist
 init.sh           # standard startup and verification path
 docs/PROCESS.md   # RUP phases, milestones, and iteration protocol
 ```

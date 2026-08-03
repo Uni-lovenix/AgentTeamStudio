@@ -3,11 +3,14 @@ import * as path from 'path';
 import { AgentRole, TeamConfig, WriteTeamResult } from '../shared/types';
 import {
   renderAgentsRules,
+  renderCleanStateChecklist,
   renderClaudeRules,
+  renderEvaluatorRubric,
   renderFeatureList,
   renderInitScript,
   renderProcessDoc,
   renderProgress,
+  renderQualityDocument,
   renderSessionHandoff,
   safeAgentFileName,
 } from './harness-templates';
@@ -312,6 +315,9 @@ export class ProjectWriter {
       { filename: 'feature_list.json', content: renderFeatureList(team) },
       { filename: 'progress.md', content: renderProgress(team) },
       { filename: 'session-handoff.md', content: renderSessionHandoff(team) },
+      { filename: 'quality-document.md', content: renderQualityDocument(team) },
+      { filename: 'evaluator-rubric.md', content: renderEvaluatorRubric(team) },
+      { filename: 'clean-state-checklist.md', content: renderCleanStateChecklist(team) },
       { filename: 'init.sh', content: renderInitScript() },
       { filename: 'docs/PROCESS.md', content: renderProcessDoc(team) },
     ];

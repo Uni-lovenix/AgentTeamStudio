@@ -7,10 +7,10 @@ Agent Team Studio 是一个跨平台桌面应用，支持 Windows 和 macOS。�
 - `AGENTS.team.md`：团队级规则、RUP 过程管理、智能体路由、协作流程和工程约定；不重复每个角色的完整明细。
 - `agents.json`：机器可读的团队配置，schema version 为 3。
 - `agents/`：每个智能体一个独立 Markdown 文件，包含该角色的使命、职责、技能、工具、交付物、协作规则和协作流程。
-- 核心 RUP harness：缺失时自动创建 `AGENTS.md`、`CLAUDE.md`、`feature_list.json`、`progress.md`、`session-handoff.md`、`init.sh`、`docs/PROCESS.md`；已有文件不会被覆盖。
+- 核心 RUP harness 与评分文件：缺失时自动创建 `AGENTS.md`、`CLAUDE.md`、`feature_list.json`、`progress.md`、`session-handoff.md`、`quality-document.md`、`evaluator-rubric.md`、`clean-state-checklist.md`、`init.sh`、`docs/PROCESS.md`；已有文件不会被覆盖。
 - 如果目标目录已存在 `AGENTS.md` 或 `CLAUDE.md`，应用只向这些文件追加指向 `AGENTS.team.md` 的规则入口，不会覆盖原有规则；缺失时初始化为精简的规则与智能体地图，不把操作手册和角色明细写入其中。
 
-当前版本只负责团队配置和核心 RUP harness 文件的生成与导出，不执行多智能体工作流。
+当前版本只负责团队配置、核心 RUP harness 和评分文件的生成与导出，不执行多智能体工作流。
 
 ## 本地生成发布包
 
@@ -50,7 +50,8 @@ shasum -a 256 AgentTeamStudio-0.1.0-mac-arm64.zip AgentTeamStudio-0.1.0-win-x64.
 - 编辑协作流程和分支、提交、PR、测试、文档约定。
 - 实际生成过程日志展示“依据什么信号、生成哪个角色、得到什么结果”，而不是只罗列步骤名称。
 - 每个角色带稳定的 `kind` 语义字段，重命名角色后仍能识别规划者、评估者、开发者和文档交接身份；写入前会校验并自动修复必需角色、悬空引用和 RUP 流程，无法修复时阻止导出。
-- 将配置原子写入用户选择的已有项目目录，团队配置使用 `AGENTS.team.md`、`agents.json` 和 `agents/` 下的独立角色文件；同时默认初始化核心 RUP harness 文件，不覆盖已有规则和状态文件。
+- 将配置原子写入用户选择的已有项目目录，团队配置使用 `AGENTS.team.md`、`agents.json` 和 `agents/` 下的独立角色文件；同时默认初始化核心 RUP harness 和可填写评分文件，不覆盖已有规则和状态文件。
+- 导出项目会得到 `quality-document.md`、`evaluator-rubric.md` 和 `clean-state-checklist.md`：质量证据、1-5 分迭代验收评分表和干净状态检查清单初始为待评估，由后续规划者/评估者按 RUP 迭代填写。
 - 本地保存多个项目草稿，重启后仍可继续编辑。
 - API Key 使用 Electron `safeStorage` 加密保存，不会写入目标项目。
 - 内置结构化日志、干净状态重置、基准脚本和清理扫描器。
@@ -95,7 +96,7 @@ bash init.sh
 7. 点击“写入项目目录”，应用会生成 `AGENTS.team.md`、`agents.json`、`agents/` 下每个智能体一个 Markdown 文件，以及缺失的核心 RUP harness 文件。
 8. 如果目录中已存在这些团队文件或 `agents/` 目录，应用会要求确认后才覆盖。
 9. 如果目录中已存在 `AGENTS.md` 或 `CLAUDE.md`，应用只向存在的规则文件追加“使用智能体规则在 AGENTS.team.md 文件”，并保留原内容；缺失时自动初始化为规则与智能体地图。
-10. 已存在的 `feature_list.json`、`progress.md`、`session-handoff.md`、`init.sh`、`docs/PROCESS.md` 会原样保留。
+10. 已存在的 `feature_list.json`、`progress.md`、`session-handoff.md`、`quality-document.md`、`evaluator-rubric.md`、`clean-state-checklist.md`、`init.sh`、`docs/PROCESS.md` 会原样保留。
 
 重置按钮只清除应用本地的项目草稿和设置，不会删除或修改目标项目目录中的文件。
 
@@ -124,6 +125,7 @@ LLM 返回结果会经过结构校验。如果请求失败、超时或返回格�
 - `agents/`：每个智能体一个独立 Markdown 文件，包含该角色的使命、职责、技能、工具、交付物、协作规则和协作流程。
 - `AGENTS.md` / `CLAUDE.md`：默认初始化为规则地图和智能体地图，不包含角色明细或操作手册；已存在时只追加指向 `AGENTS.team.md` 的规则入口。
 - `feature_list.json`、`progress.md`、`session-handoff.md`、`init.sh`、`docs/PROCESS.md`：核心 RUP harness 文件，用于跨会话追踪功能、状态、验证和迭代协议。
+- `quality-document.md`、`evaluator-rubric.md`、`clean-state-checklist.md`：质量证据、1-5 分迭代验收评分表和干净状态检查清单，初始为待评估，由项目后续评审填写。
 
 `agents.json` 中的单个角色结构如下：
 
@@ -176,7 +178,7 @@ scripts/       开发、基准、清理脚本
 当前仓库已通过以下验证：
 
 - `npm run check`
-- `npm test`（28 个测试用例）
+- `npm test`（35 个测试用例）
 - `npm run build`
 - `bash init.sh`
 - `bash scripts/benchmark.sh`（3/3）

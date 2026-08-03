@@ -43,6 +43,9 @@ describe('project-writer', () => {
         'feature_list.json',
         'progress.md',
         'session-handoff.md',
+        'quality-document.md',
+        'evaluator-rubric.md',
+        'clean-state-checklist.md',
         'init.sh',
         'docs/PROCESS.md',
       ])
@@ -58,6 +61,9 @@ describe('project-writer', () => {
     expect(fs.existsSync(path.join(dir, 'feature_list.json'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'progress.md'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'session-handoff.md'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'quality-document.md'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'evaluator-rubric.md'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'clean-state-checklist.md'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'init.sh'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'docs', 'PROCESS.md'))).toBe(true);
     const agentFiles = fs.readdirSync(path.join(dir, 'agents'));
@@ -109,6 +115,23 @@ describe('project-writer', () => {
     expect(
       fs.readFileSync(path.join(dir, 'docs', 'PROCESS.md'), 'utf-8')
     ).toContain('## 迭代协议');
+    const qualityDocument = fs.readFileSync(path.join(dir, 'quality-document.md'), 'utf-8');
+    expect(qualityDocument).toContain('# 质量文档 -- Demo');
+    expect(qualityDocument).toContain('## Overall Grade: 待评估');
+    expect(qualityDocument).toContain('## Evidence of Quality');
+    expect(qualityDocument).toContain('## Verified Against');
+    const evaluatorRubric = fs.readFileSync(path.join(dir, 'evaluator-rubric.md'), 'utf-8');
+    expect(evaluatorRubric).toContain('# 评审评分表 -- Demo');
+    expect(evaluatorRubric).toContain('| 分数 (1-5) |');
+    expect(evaluatorRubric).toContain('**Overall: 待评估 / 5**');
+    expect(evaluatorRubric).toContain('## Harness 文件评估');
+    expect(evaluatorRubric).toContain('- [ ] Accept');
+    expect(evaluatorRubric).toContain('- [ ] Revise');
+    expect(evaluatorRubric).toContain('- [ ] Block');
+    const cleanStateChecklist = fs.readFileSync(path.join(dir, 'clean-state-checklist.md'), 'utf-8');
+    expect(cleanStateChecklist).toContain('# 干净状态检查清单 -- Demo');
+    expect(cleanStateChecklist).toContain('## Build & Verification');
+    expect(cleanStateChecklist).toContain('## Harness Integrity');
     expect(fs.statSync(path.join(dir, 'init.sh')).mode & 0o111).not.toBe(0);
   });
 
@@ -136,6 +159,9 @@ describe('project-writer', () => {
     fs.writeFileSync(path.join(dir, 'feature_list.json'), '{"features":[]}');
     fs.writeFileSync(path.join(dir, 'progress.md'), 'existing progress');
     fs.writeFileSync(path.join(dir, 'session-handoff.md'), 'existing handoff');
+    fs.writeFileSync(path.join(dir, 'quality-document.md'), 'existing quality');
+    fs.writeFileSync(path.join(dir, 'evaluator-rubric.md'), 'existing rubric');
+    fs.writeFileSync(path.join(dir, 'clean-state-checklist.md'), 'existing checklist');
     fs.writeFileSync(path.join(dir, 'init.sh'), '#!/bin/bash\necho keep');
     fs.mkdirSync(path.join(dir, 'docs'));
     fs.writeFileSync(path.join(dir, 'docs', 'PROCESS.md'), 'existing process');
@@ -151,6 +177,9 @@ describe('project-writer', () => {
       'feature_list.json',
       'progress.md',
       'session-handoff.md',
+      'quality-document.md',
+      'evaluator-rubric.md',
+      'clean-state-checklist.md',
       'init.sh',
       'docs/PROCESS.md',
     ];
@@ -158,6 +187,9 @@ describe('project-writer', () => {
     expect(fs.readFileSync(path.join(dir, 'feature_list.json'), 'utf-8')).toBe('{"features":[]}');
     expect(fs.readFileSync(path.join(dir, 'progress.md'), 'utf-8')).toBe('existing progress');
     expect(fs.readFileSync(path.join(dir, 'session-handoff.md'), 'utf-8')).toBe('existing handoff');
+    expect(fs.readFileSync(path.join(dir, 'quality-document.md'), 'utf-8')).toBe('existing quality');
+    expect(fs.readFileSync(path.join(dir, 'evaluator-rubric.md'), 'utf-8')).toBe('existing rubric');
+    expect(fs.readFileSync(path.join(dir, 'clean-state-checklist.md'), 'utf-8')).toBe('existing checklist');
     expect(fs.readFileSync(path.join(dir, 'init.sh'), 'utf-8')).toBe('#!/bin/bash\necho keep');
     expect(fs.readFileSync(path.join(dir, 'docs', 'PROCESS.md'), 'utf-8')).toBe(
       'existing process'

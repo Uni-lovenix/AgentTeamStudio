@@ -36,8 +36,8 @@ All IPC channels and shared types live in `src/shared/types.ts`. Do not create a
 - `RequirementAnalyzer`: local keyword-based team generation.
 - `LlmClient`: optional OpenAI-compatible `/chat/completions` client.
 - `TeamGenerationService`: local/LLM generation with validation and fallback.
-- `ProjectWriter`: atomic export of `AGENTS.team.md`, `agents.json`, and missing core harness files.
-- `HarnessTemplates`: pure renderers for `AGENTS.md`, `CLAUDE.md`, `feature_list.json`, `progress.md`, `session-handoff.md`, `init.sh`, and `docs/PROCESS.md`.
+- `ProjectWriter`: atomic export of `AGENTS.team.md`, `agents.json`, and missing core harness and scoring files.
+- `HarnessTemplates`: pure renderers for `AGENTS.md`, `CLAUDE.md`, `feature_list.json`, `progress.md`, `session-handoff.md`, `quality-document.md`, `evaluator-rubric.md`, `clean-state-checklist.md`, `init.sh`, and `docs/PROCESS.md`.
 - `TeamConfigValidator`: validates and repairs role `kind`, IDs, workflow/RUP references, and generated harness completeness.
 - `ProcessManagement`: shared RUP phase/iteration model used by generation, normalization, migration, and export.
 - `SettingsService`: LLM settings with encrypted API key storage.
@@ -49,6 +49,7 @@ All IPC channels and shared types live in `src/shared/types.ts`. Do not create a
 - `agents.json`: schema version 3 machine-readable team config with stable role `kind`.
 - `AGENTS.md` / `CLAUDE.md`: initialized by default as rule/agent maps when missing; existing files only receive pointer.
 - `feature_list.json`, `progress.md`, `session-handoff.md`, `init.sh`, `docs/PROCESS.md`: core RUP harness state and lifecycle files, created only when missing.
+- `quality-document.md`, `evaluator-rubric.md`, `clean-state-checklist.md`: fillable quality scorecard, iteration review rubric, and clean-state checklist, created only when missing.
 
 ## Boundaries
 

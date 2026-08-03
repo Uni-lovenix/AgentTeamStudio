@@ -2,7 +2,7 @@
 
 ## What Is This?
 
-A cross-platform desktop application for Windows and macOS. Users paste a project requirement description, the app generates a multi-agent team configuration, and the user can edit the team before writing `AGENTS.team.md`, `agents.json`, and a core RUP harness into an existing project directory.
+A cross-platform desktop application for Windows and macOS. Users paste a project requirement description, the app generates a multi-agent team configuration, and the user can edit the team before writing `AGENTS.team.md`, `agents.json`, a core RUP harness, and fillable scoring templates into an existing project directory.
 
 ## Core Features
 
@@ -59,10 +59,11 @@ A cross-platform desktop application for Windows and macOS. Users paste a projec
 - Write `AGENTS.team.md` as the team-level router, `agents.json`, and one Markdown file per agent under `agents/` atomically.
 - Role details live only in `agents/*.md`; `AGENTS.team.md` routes each agent to its own file instead of duplicating them.
 - Before writing, validate and auto-repair required role kinds, unique IDs, workflow owners, RUP phase/iteration references, and missing roles; block export when unfixable validation errors remain.
-- Always initialize missing core harness files: `AGENTS.md`, `CLAUDE.md`, `feature_list.json`, `progress.md`, `session-handoff.md`, `init.sh`, and `docs/PROCESS.md`.
+- Always initialize missing core harness and scoring files: `AGENTS.md`, `CLAUDE.md`, `feature_list.json`, `progress.md`, `session-handoff.md`, `quality-document.md`, `evaluator-rubric.md`, `clean-state-checklist.md`, `init.sh`, and `docs/PROCESS.md`.
 - Missing `AGENTS.md` and `CLAUDE.md` are initialized as compact rule maps and agent maps, not operating manuals; role details remain in `agents/*.md` and are loaded only for the current role.
 - If `AGENTS.md` or `CLAUDE.md` already exists, append only a pointer to `AGENTS.team.md` while preserving the existing rules.
-- Existing harness files are never overwritten; `feature_list.json`, `progress.md`, `session-handoff.md`, `init.sh`, and `docs/PROCESS.md` are skipped when already present.
+- Existing harness files are never overwritten; `feature_list.json`, `progress.md`, `session-handoff.md`, `quality-document.md`, `evaluator-rubric.md`, `clean-state-checklist.md`, `init.sh`, and `docs/PROCESS.md` are skipped when already present.
+- `quality-document.md` starts as a pending A/B/C/D scorecard with verification commands, Evidence of Quality, and Verified Against; `evaluator-rubric.md` starts as a pending 1-5 review table with Overall score and Accept/Revise/Block conclusion; `clean-state-checklist.md` starts as a fillable clean-state checklist.
 - The generated `feature_list.json` starts with a passing `harness-bootstrap` entry, one not-started entry per construction iteration, and a transition/handoff entry.
 
 ### Settings and Status
@@ -77,11 +78,11 @@ The first screen is the working tool: left sidebar for project drafts, center ar
 
 ## Constraints
 
-- First version exports team configuration and core RUP harness files; it does not execute agents.
+- First version exports team configuration, core RUP harness, and scoring template files; it does not execute agents.
 - Export target must be an existing project directory.
 - No new source-code project scaffolding is generated; only harness and team files are initialized.
 - No network requests except optional LLM calls.
-- Generated files are `AGENTS.team.md`, `agents.json`, `agents/*.md`, and the core harness files listed above.
+- Generated files are `AGENTS.team.md`, `agents.json`, `agents/*.md`, the core harness files listed above, `quality-document.md`, `evaluator-rubric.md`, and `clean-state-checklist.md`.
 - Generated teams must contain Planner, Evaluator, and one or more Developer roles, with RUP process management and iteration protocol, development, evaluation, and feedback workflow steps.
 - Generated `agents.json` uses schema v3 and every role must carry a valid `kind`.
 - No separate RUP roles such as architect, tester, deployment engineer, or project manager are generated; the Planner, Evaluator, Developer, and documentation handoff roles carry the process responsibilities.

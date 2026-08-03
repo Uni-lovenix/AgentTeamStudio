@@ -158,6 +158,26 @@
       "testedAt": "2026-08-03T14:50:00Z",
       "rupPhase": "construction",
       "iteration": "role-harness-validation-map"
+    },
+    {
+      "id": "export-quality-scoring",
+      "name": "Export Quality Scoring Templates",
+      "description": "Exporting a team initializes missing quality-document.md and evaluator-rubric.md as fillable quality scorecard and iteration review rubric, with pending grades and 0-2 review dimensions.",
+      "status": "pass",
+      "evidence": "HarnessTemplates renders quality document and evaluator rubric from TeamConfig; ProjectWriter creates them only when missing; TeamConfigValidator validates generated scoring files; project-writer tests cover creation, content markers, and preservation of existing score files.",
+      "testedAt": "2026-08-03T15:14:00Z",
+      "rupPhase": "construction",
+      "iteration": "export-quality-scoring"
+    },
+    {
+      "id": "harness-scoring-mechanism",
+      "name": "Harness Scoring Mechanism and Clean-State Checklist",
+      "description": "Exported harness includes quality-document evidence sections, evaluator-rubric 1-5 scoring with Accept/Revise/Block and file assessment, plus clean-state-checklist.md.",
+      "status": "pass",
+      "evidence": "HarnessTemplates renders quality evidence, 1-5 rubric, and clean-state checklist from TeamConfig; ProjectWriter initializes clean-state-checklist.md only when missing; TeamConfigValidator requires and validates the checklist marker; benchmark checks scoring markers; project-writer and validator tests cover creation, markers, and preservation.",
+      "testedAt": "2026-08-03T15:27:30Z",
+      "rupPhase": "construction",
+      "iteration": "harness-scoring-mechanism"
     }
   ]
 }

@@ -16,7 +16,7 @@ Before writing any code, complete these steps in order:
 
 ## Project Context
 
-Agent Team Studio is a cross-platform Electron desktop application for Windows and macOS. Users paste a project requirement description, the app designs a multi-agent team, and the user can edit and export the team configuration plus a core RUP harness into an existing project directory as `AGENTS.team.md`, `agents.json`, and missing harness files such as `AGENTS.md`, `CLAUDE.md`, `feature_list.json`, `progress.md`, `session-handoff.md`, `init.sh`, and `docs/PROCESS.md`.
+Agent Team Studio is a cross-platform Electron desktop application for Windows and macOS. Users paste a project requirement description, the app designs a multi-agent team, and the user can edit and export the team configuration plus a core RUP harness into an existing project directory as `AGENTS.team.md`, `agents.json`, and missing harness files such as `AGENTS.md`, `CLAUDE.md`, `feature_list.json`, `progress.md`, `session-handoff.md`, `quality-document.md`, `evaluator-rubric.md`, `clean-state-checklist.md`, `init.sh`, and `docs/PROCESS.md`.
 
 The first version generates team configuration and RUP harness files. It does not execute agents or scaffold new source projects.
 
@@ -41,6 +41,7 @@ docs/
   RELIABILITY.md    -- Logging, LLM secrets, clean state, benchmarking
   PROCESS.md        -- RUP process management for future feature work
   quality-document.md  -- 质量文档
+  evaluator-rubric.md  -- 评审评分表
 ```
 
 ## Electron Layer Boundaries

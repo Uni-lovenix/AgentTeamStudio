@@ -7,9 +7,29 @@
 - 标准验证路径：`npm run check`、`npm test`、`npm run build`
 - 当前最高优先级未完成功能：无阻塞项
 - 当前 blocker：无
-- 当前 RUP 阶段：构建（Construction），本轮迭代：`role-harness-validation-map`
+- 当前 RUP 阶段：构建（Construction），本轮迭代：`harness-scoring-mechanism`
 
 ## 会话记录
+
+### Session 2026-08-03 Harness 评分机制与干净状态清单
+
+- 日期：2026-08-03
+- 迭代目标：参考 project-06 solution，把导出 harness 的评分机制升级为质量证据 + 1-5 分评审表 + clean-state-checklist。
+- 已完成：`quality-document.md` 增加 Evidence of Quality 和 Verified Against；`evaluator-rubric.md` 改为 1-5 分、Overall、Accept/Revise/Block 和 Harness 文件评估；新增 `renderCleanStateChecklist` 并在缺失时导出；`ProjectWriter`、`TeamConfigValidator`、benchmark、测试、文档和 ExportPanel 同步支持 checklist。
+- 运行过的验证：`npm run check`、`npm test`（35 个用例）、`npm run build`、`bash scripts/benchmark.sh`（3/3，scoring harness PASS）、`bash scripts/cleanup-scanner.sh`（CLEAN）、`bash init.sh`（全通过）
+- 更新过的文件或工件：`src/services/harness-templates.ts`、`src/services/project-writer.ts`、`src/services/team-config-validator.ts`、`scripts/benchmark.cjs`、`test/project-writer.test.ts`、`test/team-config-validator.test.ts`、`src/renderer/components/ExportPanel.tsx`、`README.md`、`AGENTS.md`、`CLAUDE.md`、`docs/ARCHITECTURE.md`、`docs/PRODUCT.md`、`docs/RELIABILITY.md`、`feature_list.json`、`session-handoff.md`
+- 已知风险或未解决问题：评分和 checklist 仍是可填写模板，不做自动评分；已有 `quality-document.md`、`evaluator-rubric.md`、`clean-state-checklist.md` 会原样保留，不会自动升级。
+- 下一步最佳动作：重新启动应用，将团队导出到目标项目目录，确认 10 个 harness 文件齐全，并在 RUP 迭代验收时由评估者填写 1-5 分评审表。
+
+### Session 2026-08-03 导出质量评分模板
+
+- 日期：2026-08-03
+- 迭代目标：参考 project-06 solution 的质量评分机制，让导出到目标项目的 harness 包含可填写的 `quality-document.md` 和 `evaluator-rubric.md`。
+- 已完成：`HarnessTemplates` 新增按 `TeamConfig` 动态渲染质量文档和评审评分表；`ProjectWriter` 只在缺失时创建评分文件；`TeamConfigValidator` 校验新生成评分文件的项目名和评分标记；规则地图、生成 `init.sh`、`session-handoff.md`、`feature_list.json`、benchmark 和 ExportPanel 同步包含评分文件；已有评分文件不会被覆盖。
+- 运行过的验证：`npm run check`、`npm test`（34 个用例）、`npm run build`、`bash scripts/benchmark.sh`（3/3）、`bash scripts/cleanup-scanner.sh`（CLEAN）、`bash init.sh`（全通过）
+- 更新过的文件或工件：`src/services/harness-templates.ts`、`src/services/project-writer.ts`、`src/services/team-config-validator.ts`、`src/renderer/components/ExportPanel.tsx`、`scripts/benchmark.cjs`、`test/project-writer.test.ts`、`README.md`、`AGENTS.md`、`CLAUDE.md`、`docs/PRODUCT.md`、`docs/ARCHITECTURE.md`、`docs/RELIABILITY.md`、`docs/quality-document.md`、`feature_list.json`、`session-handoff.md`
+- 已知风险或未解决问题：评分初始为待评估，不提供自动评分；已有 `quality-document.md` / `evaluator-rubric.md` 会原样保留，不会自动覆盖或升级。
+- 下一步最佳动作：重新启动应用，将团队导出到目标项目目录，确认两个评分文件生成，并在 RUP 迭代验收时由评估者填写评分表。
 
 ### Session 2026-08-03 角色/Harness 校验与规则地图
 
